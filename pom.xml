@@ -17,6 +17,7 @@
         <module>heima-leadnews-gateway</module>
         <module>heima-leadnews-test</module>
         <module>heima-leadnews-basic</module>
+        <module>heima-leadnews-service/heima-leadnews-wemedia</module>
     </modules>
 
     <!-- 继承Spring boot工程 -->
@@ -322,6 +323,10 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
         <resources>
