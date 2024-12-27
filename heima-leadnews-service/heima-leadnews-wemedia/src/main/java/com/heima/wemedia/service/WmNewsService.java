@@ -16,4 +16,10 @@ public interface WmNewsService extends IService<WmNews> {
     ResponseResult pageListNews(WmNewsPageReqDto dto);
 
     ResponseResult submit(WmNewsDto dto);
+
+    ResponseResult getOneNews(Integer nid);
+
+    ResponseResult deleteNews(Integer nid);
+
+    ResponseResult upOrDown(Integer id, Short enable);
 }

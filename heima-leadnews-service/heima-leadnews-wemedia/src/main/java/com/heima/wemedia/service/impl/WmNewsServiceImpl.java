@@ -28,10 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +44,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Autowired
     private WmMaterialMapper wmMaterialMapper;
+
+    @Autowired
+    private WmNewsMapper wmNewsMapper;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -155,6 +155,62 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 将封面图的引用关系写入数据库
         if (imgs != null && !imgs.isEmpty())
             saveRelativeInfo(imgs, dto.getId(), WemediaConstants.WM_COVER_REFERENCE);
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult getOneNews(Integer nid) {
+        WmNews news = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, nid));
+        return ResponseResult.okResult(news);
+    }
+
+    @Override
+    public ResponseResult deleteNews(Integer nid) {
+        // 0.判断参数是否合法
+        if (nid == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        WmNews wmNews = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, nid));
+        // 文章不存在
+        if (wmNews == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
+        // 文章不是本人写的
+        if (!wmNews.getUserId().equals(wmUser.getId()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+
+        // 1.判断文章是否已发布
+        if (Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_HAS_PUBLISHED);
+
+        // 2.删除文章及其与素材的关联
+        removeById(nid);
+        wmNewsMaterialMapper.delete(new LambdaQueryWrapper<WmNewsMaterial>()
+                .eq(WmNewsMaterial::getNewsId, nid));
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult upOrDown(Integer id, Short enable) {
+        // 检查参数
+        if (id == null || enable == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        WmNews wmNews = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, id));
+        // 文章不存在
+        if (wmNews == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
+        // 文章不是本人写的
+        if (!wmNews.getUserId().equals(wmUser.getId()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+        // 文章的状态是否为发布
+        if (!Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_ISNT_PUBLISHED);
+
+        // 修改状态
+        wmNews.setEnable(enable);
+        updateById(wmNews);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
