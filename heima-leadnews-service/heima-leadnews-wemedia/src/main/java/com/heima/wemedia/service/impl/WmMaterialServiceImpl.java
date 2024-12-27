@@ -2,6 +2,7 @@ package com.heima.wemedia.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heima.common.constants.WemediaConstants;
@@ -11,10 +12,13 @@ import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.wemedia.dtos.WmMaterialDto;
 import com.heima.model.wemedia.pojos.WmMaterial;
+import com.heima.model.wemedia.pojos.WmNewsMaterial;
 import com.heima.model.wemedia.pojos.WmUser;
 import com.heima.utils.thread.ThreadLocalUtil;
 import com.heima.wemedia.mapper.WmMaterialMapper;
+import com.heima.wemedia.mapper.WmNewsMaterialMapper;
 import com.heima.wemedia.service.WmMaterialService;
+import javafx.scene.paint.Material;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -38,6 +43,12 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
 
     @Autowired
     private FileStorageService fileStorageService;
+
+    @Autowired
+    private WmNewsMaterialMapper wmNewsMaterialMapper;
+
+    @Autowired
+    private WmMaterialMapper wmMaterialMapper;
 
     /**
      * 图片上传
@@ -96,5 +107,72 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         PageResponseResult res = new PageResponseResult(dto.getPage(), dto.getSize(), (int) page.getTotal());
         res.setData(page.getRecords());
         return res;
+    }
+
+    @Override
+    public ResponseResult deletePicture(Integer id) {
+        // 检查参数
+        if (id == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        // 检查是否存在
+        WmMaterial material = wmMaterialMapper.selectById(id);
+        if (material == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
+
+        // 检查此图片是否被使用
+        LambdaQueryWrapper<WmNewsMaterial> query = new LambdaQueryWrapper<WmNewsMaterial>()
+                .select(WmNewsMaterial::getId)
+                .eq(WmNewsMaterial::getMaterialId, id);
+        List<WmNewsMaterial> res = wmNewsMaterialMapper.selectList(query);
+        if (!res.isEmpty())
+            return ResponseResult.errorResult(AppHttpCodeEnum.MATERIAL_HAS_REFERENCE);
+        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        if (!wmUser.getId().equals(material.getUserId()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
+
+        // 执行删除
+        removeById(id);
+        fileStorageService.delete(material.getUrl());
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult collectMaterial(Integer id) {
+        // 参数检验
+        if (id == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        WmMaterial material = wmMaterialMapper.selectOne(new LambdaQueryWrapper<WmMaterial>()
+                .select(WmMaterial::getId, WmMaterial::getUserId)
+                .eq(WmMaterial::getId, id));
+        if (!wmUser.getId().equals(material.getUserId()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        // 执行修改
+        material.setIsCollection((short) 1);
+        wmMaterialMapper.updateById(material);
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult cancelCollectMaterial(Integer mid) {
+        // 参数检验
+        if (mid == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        WmMaterial material = wmMaterialMapper.selectOne(new LambdaQueryWrapper<WmMaterial>()
+                .select(WmMaterial::getId, WmMaterial::getUserId)
+                .eq(WmMaterial::getId, mid));
+        if (!wmUser.getId().equals(material.getUserId()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        // 执行修改
+        material.setIsCollection((short) 0);
+        wmMaterialMapper.updateById(material);
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }

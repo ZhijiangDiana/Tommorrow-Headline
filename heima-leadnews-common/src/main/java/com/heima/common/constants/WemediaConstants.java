@@ -26,6 +26,6 @@ public class WemediaConstants {
     public static final Short WM_CONTENT_REFERENCE = 0;
     public static final Short WM_COVER_REFERENCE = 1;
 
-    public static final Short WM_NEWS_RELEASED = 1;
-    public static final Short WM_NEWS_PULLED_DOWN = 0;
+    public static final Short WM_NEWS_RELEASED = 1;  // 已上架
+    public static final Short WM_NEWS_PULLED_DOWN = 0;  // 已下架
 }

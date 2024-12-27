@@ -28,7 +28,9 @@ public enum AppHttpCodeEnum {
     NEED_ADMIND(3001,"需要管理员权限"),
 
     // 自媒体文章错误 3501-3600
-    MATERIAL_REFERENCE_FAIL(3501, "素材引用失效");
+    MATERIAL_REFERENCE_FAIL(3501, "素材引用失效"),
+    MATERIAL_HAS_REFERENCE(3502, "素材已被引用"),
+    FILE_DELETE_FAIL(501, "文件删除失败");
 
     int code;
     String errorMessage;
