@@ -10,3 +10,7 @@ spring:
       config:
         server-addr: 192.168.1.200:8848
         file-extension: yml
+mybatis-plus:
+  global-config:
+    datacenter-id: 1
+    workerId: 1
