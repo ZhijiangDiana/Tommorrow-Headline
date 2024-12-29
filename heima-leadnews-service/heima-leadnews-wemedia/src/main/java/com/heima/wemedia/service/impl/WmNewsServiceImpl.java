@@ -93,6 +93,8 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         }
         if (dto.getType().equals(WemediaConstants.WM_NEWS_TYPE_AUTO))
             wmNews.setType(null);
+        if (dto.getType().equals(WemediaConstants.WM_NEWS_NONE_IMAGE))
+            wmNews.setImages("");
         WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
         wmNews.setUserId(wmUser.getId());
         wmNews.setSubmitedTime(new Date());
@@ -138,11 +140,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             if (materials.size() >= 3) {
                 // 多图
                 wmNews.setType(WemediaConstants.WM_NEWS_MANY_IMAGE);
-                imgs = imgs.stream().limit(3).collect(Collectors.toList());
+                imgs = materials.stream().limit(3).collect(Collectors.toList());
             } else if (!materials.isEmpty()) {
                 // 单图
                 wmNews.setType(WemediaConstants.WM_NEWS_SINGLE_IMAGE);
-                imgs = imgs.stream().limit(1).collect(Collectors.toList());
+                imgs = materials.stream().limit(1).collect(Collectors.toList());
             } else {
                 // 无图
                 wmNews.setType(WemediaConstants.WM_NEWS_NONE_IMAGE);
