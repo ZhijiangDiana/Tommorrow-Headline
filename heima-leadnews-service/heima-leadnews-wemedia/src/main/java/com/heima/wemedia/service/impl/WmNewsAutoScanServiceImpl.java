@@ -1,6 +1,7 @@
 package com.heima.wemedia.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.heima.apis.article.IArticleClient;
 import com.heima.common.aliyun.ImageModerationService;
 import com.heima.common.aliyun.ModerationResult;
@@ -12,14 +13,18 @@ import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.wemedia.pojos.WmChannel;
 import com.heima.model.wemedia.pojos.WmNews;
+import com.heima.model.wemedia.pojos.WmSensitive;
 import com.heima.model.wemedia.pojos.WmUser;
+import com.heima.utils.common.ACAutomation;
 import com.heima.wemedia.mapper.WmChannelMapper;
 import com.heima.wemedia.mapper.WmNewsMapper;
+import com.heima.wemedia.mapper.WmSensitiveMapper;
 import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAutoScanService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -54,14 +59,18 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     @Autowired
     private WmUserMapper wmUserMapper;
 
+    @Autowired
+    private WmSensitiveMapper wmSensitiveMapper;
+
     /**
      * 自媒体文章申鹤
      *
      * @param id
-     * @return
      */
+
+    @Async  // 异步方法
     @Override
-    public ResponseResult autoScanWnNews(Integer id) {
+    public void autoScanWnNews(Integer id) {
         // 1.查询自媒体文章
         WmNews wmNews = wmNewsMapper.selectById(id);
         if (wmNews == null)
@@ -87,7 +96,27 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             }
             imgs = imgs.stream().distinct().collect(Collectors.toList());
 
-            // TODO 可以改为异步审核
+            // TODO 可以改为消息队列异步审核
+            // TODO 调用python的ocr微服务，将图片的文字转为字符串加入敏感词检测
+            // 审核自管理的敏感词过滤
+            List<String> sensitives = wmSensitiveMapper
+                    .selectList(new LambdaQueryWrapper<WmSensitive>()
+                            .select(WmSensitive::getSensitives))
+                    .stream()
+                    .map(WmSensitive::getSensitives)
+                    .collect(Collectors.toList());
+            ACAutomation.getInstance(sensitives);
+            List<String> illegalWords = ACAutomation.search(textToScan);
+            if (!illegalWords.isEmpty()) {
+                // 敏感词审核不通过
+                wmNews.setStatus(WmNews.Status.FAIL.getCode());
+                wmNews.setReason("出现敏感词：" +
+                        illegalWords.stream().distinct().limit(3)
+                                .collect(Collectors.toList()));
+                wmNewsMapper.updateById(wmNews);
+                return;
+            }
+
             int flag = 0;
             String reason = "";
             try {
@@ -112,10 +141,10 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
                         byte[] imgBytes = fileStorageService.downLoadFile(img);
                         ModerationResult result = imageModerationService.imageModeration(imgBytes);
                         imagesResult.add(result);
-                        if (ModerationResult.HIGH_RISK.equals(textResult.getRisk())) {
+                        if (ModerationResult.HIGH_RISK.equals(result.getRisk())) {
                             // 违规内容高风险
                             flag = 2;
-                        } else if (ModerationResult.MEDIUM_RISK.equals(textResult.getRisk())) {
+                        } else if (ModerationResult.MEDIUM_RISK.equals(result.getRisk())) {
                             // 违规内容中风险
                             flag = Math.max(flag, 1);
                         }
@@ -176,7 +205,5 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
                 wmNewsMapper.updateById(wmNews);
             }
         }
-
-        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }

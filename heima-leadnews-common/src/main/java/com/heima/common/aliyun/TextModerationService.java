@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -79,7 +80,18 @@ public class TextModerationService {
                 if (code.equals(200)) {
                     TextModerationPlusResponseBody.TextModerationPlusResponseBodyData data = result.getData();
                     res = new ModerationResult();
-                    res.setRisk(data.getRiskLevel());
+                    if (data.getRiskLevel() != null) {
+                        res.setRisk(data.getRiskLevel());
+                    } else {
+                        // 处理阿里云riskLevel字段缺失的bug
+                        for (TextModerationPlusResponseBody.TextModerationPlusResponseBodyDataResult
+                                x : data.getResult()) {
+                            if (!x.label.equals("nonLabel") && x.confidence >= 80) {
+                                res.setRisk(ModerationResult.HIGH_RISK);
+                                break;
+                            }
+                        }
+                    }
                     if (data.result != null)
                         res.setReason(data.result.stream()
                                 .filter(x -> x.confidence != null && x.confidence >= 80)

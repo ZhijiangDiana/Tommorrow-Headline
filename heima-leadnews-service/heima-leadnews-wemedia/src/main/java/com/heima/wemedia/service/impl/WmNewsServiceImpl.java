@@ -21,6 +21,7 @@ import com.heima.utils.thread.ThreadLocalUtil;
 import com.heima.wemedia.mapper.WmMaterialMapper;
 import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmNewsMaterialMapper;
+import com.heima.wemedia.service.WmNewsAutoScanService;
 import com.heima.wemedia.service.WmNewsService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -47,6 +48,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Autowired
     private WmNewsMapper wmNewsMapper;
+
+    @Autowired
+    private WmNewsAutoScanService wmNewsAutoScanService;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -157,6 +161,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 将封面图的引用关系写入数据库
         if (imgs != null && !imgs.isEmpty())
             saveRelativeInfo(imgs, dto.getId(), WemediaConstants.WM_COVER_REFERENCE);
+
+        // 提交审核
+        wmNewsAutoScanService.autoScanWnNews(wmNews.getId());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

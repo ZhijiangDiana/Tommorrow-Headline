@@ -78,6 +78,14 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
 
     @Override
     public ResponseResult saveArticle(ArticleDto dto) {
+
+//        // 取消注释以下代码可测试服务熔断
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+
         // 1.检查参数
         if (dto == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
