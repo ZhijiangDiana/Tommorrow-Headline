@@ -21,6 +21,7 @@ import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmSensitiveMapper;
 import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAutoScanService;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
 
     @Async  // 异步方法
     @Override
+    @GlobalTransactional
     public void autoScanWnNews(Integer id) {
         // 1.查询自媒体文章
         WmNews wmNews = wmNewsMapper.selectById(id);
@@ -96,7 +98,6 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             }
             imgs = imgs.stream().distinct().collect(Collectors.toList());
 
-            // TODO 可以改为消息队列异步审核
             // TODO 调用python的ocr微服务，将图片的文字转为字符串加入敏感词检测
             // 审核自管理的敏感词过滤
             List<String> sensitives = wmSensitiveMapper

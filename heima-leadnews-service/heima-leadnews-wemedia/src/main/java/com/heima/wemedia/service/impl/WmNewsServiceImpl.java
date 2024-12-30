@@ -163,6 +163,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             saveRelativeInfo(imgs, dto.getId(), WemediaConstants.WM_COVER_REFERENCE);
 
         // 提交审核
+        // TODO 改成消息队列提交审核
         wmNewsAutoScanService.autoScanWnNews(wmNews.getId());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
