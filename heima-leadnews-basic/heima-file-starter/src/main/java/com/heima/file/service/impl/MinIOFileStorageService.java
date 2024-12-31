@@ -38,7 +38,7 @@ public class MinIOFileStorageService implements FileStorageService {
      * @param filename  yyyy/mm/dd/file.jpg
      * @return
      */
-    public String builderFilePath(String dirPath,String filename) {
+    private String builderFilePath(String dirPath,String filename) {
         StringBuilder stringBuilder = new StringBuilder(50);
         if(!StringUtils.isEmpty(dirPath)){
             stringBuilder.append(dirPath).append(separator);
@@ -113,7 +113,7 @@ public class MinIOFileStorageService implements FileStorageService {
      */
     @Override
     public void delete(String pathUrl) {
-        String key = pathUrl.replace(minIOConfigProperties.getEndpoint()+"/","");
+        String key = pathUrl.replace(minIOConfigProperties.getReadPath()+"/","");
         int index = key.indexOf(separator);
         String bucket = key.substring(0,index);
         String filePath = key.substring(index+1);
@@ -136,7 +136,7 @@ public class MinIOFileStorageService implements FileStorageService {
      */
     @Override
     public byte[] downLoadFile(String pathUrl)  {
-        String key = pathUrl.replace(minIOConfigProperties.getEndpoint()+"/","");
+        String key = pathUrl.replace(minIOConfigProperties.getReadPath()+"/","");
         int index = key.indexOf(separator);
         String bucket = key.substring(0,index);
         String filePath = key.substring(index+1);

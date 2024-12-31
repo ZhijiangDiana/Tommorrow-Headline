@@ -13,6 +13,7 @@ public class MinIOConfigProperties implements Serializable {
     private String accessKey;
     private String secretKey;
     private String bucket;
-    private String endpoint;
-    private String readPath;
+    private String endpoint;  // 内网访问路径
+    private String readPath;  // 修改外网路径仅需更改此条配置即可
+    // TODO 申请和安装域名
 }
