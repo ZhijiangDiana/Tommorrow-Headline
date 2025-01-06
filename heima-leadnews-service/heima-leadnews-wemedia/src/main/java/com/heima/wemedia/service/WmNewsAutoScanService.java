@@ -12,5 +12,5 @@ public interface WmNewsAutoScanService {
      *
      * @param id
      */
-    void autoScanWnNews(Integer id);
+    void autoScanWmNews(Integer id);
 }

@@ -23,6 +23,7 @@ import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmNewsMaterialMapper;
 import com.heima.wemedia.service.WmNewsAutoScanService;
 import com.heima.wemedia.service.WmNewsService;
+import com.heima.wemedia.service.WmNewsTaskService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Autowired
     private WmNewsAutoScanService wmNewsAutoScanService;
+
+    @Autowired
+    private WmNewsTaskService wmNewsTaskService;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -163,8 +167,8 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             saveRelativeInfo(imgs, dto.getId(), WemediaConstants.WM_COVER_REFERENCE);
 
         // 提交审核
-        // TODO 改成消息队列提交审核
-        wmNewsAutoScanService.autoScanWnNews(wmNews.getId());
+//        wmNewsAutoScanService.autoScanWnNews(wmNews.getId());    // 异步调用提交审核
+        wmNewsTaskService.addScanNewsTask(wmNews.getId(), new Date());    // 定时任务提交审核
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

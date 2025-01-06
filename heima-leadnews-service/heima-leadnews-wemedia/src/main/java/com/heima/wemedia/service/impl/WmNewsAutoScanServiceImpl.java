@@ -21,10 +21,12 @@ import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmSensitiveMapper;
 import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAutoScanService;
+import com.heima.wemedia.service.WmNewsTaskService;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -63,6 +65,10 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     @Autowired
     private WmSensitiveMapper wmSensitiveMapper;
 
+    @Lazy
+    @Autowired
+    private WmNewsTaskService wmNewsTaskService;
+
     /**
      * 自媒体文章申鹤
      *
@@ -72,7 +78,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     @Async  // 异步方法
     @Override
     @GlobalTransactional
-    public void autoScanWnNews(Integer id) {
+    public void autoScanWmNews(Integer id) {
         // 1.查询自媒体文章
         WmNews wmNews = wmNewsMapper.selectById(id);
         if (wmNews == null)
@@ -190,7 +196,14 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
                 if (!responseResult.getCode().equals(200))
                     throw new RuntimeException(getClass().getSimpleName() + "-文章审核，保存app端相关文章数据失败");
                 // 回填article_id
-                wmNews.setStatus(WmNews.Status.SUCCESS.getCode());
+                if (wmNews.getPublishTime().after(new Date())) {
+                    // 若发布时间在当前时间之后，则添加定时任务发布
+                    wmNews.setStatus(WmNews.Status.SUCCESS.getCode());
+                    wmNewsTaskService.addPublishNewsTask(wmNews.getId(), wmNews.getPublishTime());
+                } else {
+                    // 若发布时间在当前时间之前，则立即发布
+                    wmNews.setStatus(WmNews.Status.PUBLISHED.getCode());
+                }
                 wmNews.setReason("审核成功");
                 wmNews.setArticleId((Long) responseResult.getData());
                 wmNewsMapper.updateById(wmNews);
