@@ -30,7 +30,7 @@ public enum AppHttpCodeEnum {
     // 自媒体文章错误 3501-3600
     MATERIAL_REFERENCE_FAIL(3501, "素材引用失效"),
     MATERIAL_HAS_REFERENCE(3502, "素材已被引用，不能删除"),
-    NEWS_HAS_PUBLISHED(501, "文章已发布，不能删除"),
+    NEWS_HAS_PUBLISHED(501, "文章未发布，不能删除"),
     NEWS_ISNT_PUBLISHED(501, "文章不是发布状态，不能上下架");
 
     int code;

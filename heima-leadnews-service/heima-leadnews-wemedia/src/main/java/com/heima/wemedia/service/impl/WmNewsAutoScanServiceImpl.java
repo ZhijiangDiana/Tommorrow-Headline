@@ -106,6 +106,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
 
             // TODO 调用python的ocr微服务，将图片的文字转为字符串加入敏感词检测
             // 审核自管理的敏感词过滤
+            // TODO 将敏感词作为一个业务调用
             List<String> sensitives = wmSensitiveMapper
                     .selectList(new LambdaQueryWrapper<WmSensitive>()
                             .select(WmSensitive::getSensitives))

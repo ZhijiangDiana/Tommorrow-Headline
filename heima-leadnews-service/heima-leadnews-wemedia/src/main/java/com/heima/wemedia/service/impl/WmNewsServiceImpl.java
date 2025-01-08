@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heima.common.constants.WemediaConstants;
+import com.heima.common.constants.WmNewsMessageConstants;
 import com.heima.common.exception.CustomException;
 import com.heima.model.common.dtos.PageResponseResult;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.wemedia.dtos.WmNewsDto;
+import com.heima.model.wemedia.dtos.WmNewsEnableDto;
 import com.heima.model.wemedia.dtos.WmNewsPageReqDto;
 import com.heima.model.wemedia.pojos.WmMaterial;
 import com.heima.model.wemedia.pojos.WmNews;
@@ -21,12 +23,12 @@ import com.heima.utils.thread.ThreadLocalUtil;
 import com.heima.wemedia.mapper.WmMaterialMapper;
 import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmNewsMaterialMapper;
-import com.heima.wemedia.service.WmNewsAutoScanService;
 import com.heima.wemedia.service.WmNewsService;
 import com.heima.wemedia.service.WmNewsTaskService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,13 +50,10 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     private WmMaterialMapper wmMaterialMapper;
 
     @Autowired
-    private WmNewsMapper wmNewsMapper;
-
-    @Autowired
-    private WmNewsAutoScanService wmNewsAutoScanService;
-
-    @Autowired
     private WmNewsTaskService wmNewsTaskService;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -180,27 +179,28 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     }
 
     @Override
+    @Transactional
     public ResponseResult deleteNews(Integer nid) {
         // 0.判断参数是否合法
         if (nid == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
         WmNews wmNews = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, nid));
         // 文章不存在
         if (wmNews == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
-        // 文章不是本人写的
-        if (!wmNews.getUserId().equals(wmUser.getId()))
-            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
 
-        // 1.判断文章是否已发布
-        if (Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
+        // 1.判断文章是否未发布
+        if (!Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
             return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_HAS_PUBLISHED);
 
         // 2.删除文章及其与素材的关联
         removeById(nid);
         wmNewsMaterialMapper.delete(new LambdaQueryWrapper<WmNewsMaterial>()
                 .eq(WmNewsMaterial::getNewsId, nid));
+
+        // 3.通知文章微服务打上删除标记
+        if (wmNews.getArticleId() != null)
+            kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_DELETE_TOPIC, wmNews.getArticleId().toString());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
@@ -210,14 +210,10 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 检查参数
         if (id == null || enable == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        // 查询文章
         WmNews wmNews = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, id));
-        // 文章不存在
         if (wmNews == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
-        // 文章不是本人写的
-        if (!wmNews.getUserId().equals(wmUser.getId()))
-            return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
         // 文章的状态是否为发布
         if (!Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
             return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_ISNT_PUBLISHED);
@@ -225,6 +221,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 修改状态
         wmNews.setEnable(enable);
         updateById(wmNews);
+        // 消息队列通知文章微服务上下架
+        if (wmNews.getArticleId() != null) {
+            WmNewsEnableDto wmNewsEnableDto = new WmNewsEnableDto(wmNews.getArticleId(), enable);
+            kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_UP_OR_DOWN_TOPIC, JSON.toJSONString(wmNewsEnableDto));
+        }
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
