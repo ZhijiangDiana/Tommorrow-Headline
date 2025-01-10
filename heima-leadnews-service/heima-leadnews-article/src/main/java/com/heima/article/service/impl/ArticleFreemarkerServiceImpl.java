@@ -57,6 +57,7 @@ public class ArticleFreemarkerServiceImpl implements ArticleFreemarkerService {
             StringWriter out = new StringWriter();
             // 准备数据模型
             HashMap<String, Object> contentDataModel = new HashMap<>();
+            content = content.replace("\\n", "<br/>");
             contentDataModel.put("content", JSONArray.parseArray(content));
             // 合成
             template.process(contentDataModel, out);

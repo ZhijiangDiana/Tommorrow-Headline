@@ -21,12 +21,14 @@
         </van-row>
 
         <van-row type="flex" align="center" class="article-header">
-            <van-col span="3">
-                <van-image round class="article-avatar" src="https://p3.pstatp.com/thumb/1480/7186611868"></van-image>
-            </van-col>
-            <van-col span="16">
-                <div v-html="authorName"></div>
-                <div>{{ publishTime | timestampToDateTime }}</div>
+            <van-col class="article-info-box">
+                <van-col span="3">
+                    <van-image round class="article-avatar" :src="avatar"></van-image>
+                </van-col>
+                <van-col class="article-info" span="16">
+                    <div v-html="authorName"></div>
+                    <div>{{ publishTime | timestampToDateTime }}</div>
+                </van-col>
             </van-col>
             <van-col span="5">
                 <van-button round :icon="relation.isfollow ? '' : 'plus'" type="info" class="article-focus"

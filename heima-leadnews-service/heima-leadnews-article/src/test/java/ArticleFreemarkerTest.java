@@ -3,13 +3,16 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.heima.article.ArticleApplication;
 import com.heima.article.mapper.ApArticleContentMapper;
+import com.heima.article.mapper.ApArticleMapper;
 import com.heima.article.service.ApArticleService;
+import com.heima.article.service.ArticleFreemarkerService;
 import com.heima.file.service.FileStorageService;
 import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.article.pojos.ApArticleContent;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,9 +33,13 @@ import java.util.Objects;
  * @Author 嘉然今天吃向晚
  * @Date 2024/12/26-00:49:30
  */
+@Slf4j
 @SpringBootTest(classes = ArticleApplication.class)
 @RunWith(SpringRunner.class)
 public class ArticleFreemarkerTest {
+
+    @Autowired
+    private ApArticleMapper apArticleMapper;
 
     @Autowired
     private ApArticleContentMapper apArticleContentMapper;
@@ -44,6 +52,9 @@ public class ArticleFreemarkerTest {
 
     @Autowired
     private ApArticleService apArticleService;
+
+    @Autowired
+    private ArticleFreemarkerService articleFreemarkerService;
 
     @Test
     public void test() throws IOException, TemplateException {
@@ -68,6 +79,18 @@ public class ArticleFreemarkerTest {
                     .eq(ApArticle::getId, content.getArticleId())
                     .set(ApArticle::getStaticUrl, path));
 
+        }
+    }
+
+    @Test
+    public void reloadAllHtml() {
+        List<ApArticle> apArticles = apArticleMapper.selectList(Wrappers.<ApArticle>lambdaQuery());
+        log.info("需要更新{}条数据", apArticles.size());
+        for (ApArticle apArticle : apArticles) {
+            ApArticleContent content = apArticleContentMapper.selectOne(
+                    Wrappers.<ApArticleContent>lambdaQuery()
+                            .eq(ApArticleContent::getArticleId, apArticle.getId().toString() + "L"));
+            articleFreemarkerService.buildArticleToMinio(apArticle, content.getContent());
         }
     }
 }
