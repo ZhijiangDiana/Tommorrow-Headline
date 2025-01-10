@@ -5,7 +5,10 @@ import com.heima.common.constants.SearchConstants;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.dtos.UserSearchDto;
+import com.heima.model.user.pojos.ApUser;
+import com.heima.search.service.ApUserSearchService;
 import com.heima.search.service.ArticleSearchService;
+import com.heima.utils.thread.ThreadLocalUtil;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -29,6 +32,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
+
+    @Autowired
+    private ApUserSearchService apUserSearchService;
 
     /**
      * ES文章分页搜索
@@ -96,6 +102,11 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
             }
             list.add(map);
         }
+
+        // 4.插入搜索记录
+        ApUser user = (ApUser) ThreadLocalUtil.getObject();
+        if (user != null && !user.getId().equals(0) && userSearchDto.getFromIndex() == 0)  // 不记录游客用户
+            apUserSearchService.addSearchHistory(userSearchDto.getSearchWords(), user.getId());
 
         return ResponseResult.okResult(list);
     }

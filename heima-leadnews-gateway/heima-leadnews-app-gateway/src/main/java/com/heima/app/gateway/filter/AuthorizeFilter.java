@@ -45,6 +45,14 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
+            // 获取用户信息
+            Integer id = (Integer) claimsBody.get("id");
+            // 存入header中
+            ServerHttpRequest newReq = request.mutate().headers(httpHeaders -> {
+                httpHeaders.add("userId", id.toString());
+            }).build();
+            // 重置请求
+            exchange.mutate().request(newReq);
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
