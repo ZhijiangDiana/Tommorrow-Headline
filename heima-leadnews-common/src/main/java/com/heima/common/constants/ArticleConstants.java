@@ -9,4 +9,6 @@ public class ArticleConstants {
     public final static Short LOADTYPE_LOAD_MORE = 1;
     public final static Short LOADTYPE_LOAD_NEW = 2;
     public final static String DEFAULT_TAG = "__all__";
+
+    public static final String ARTICLE_ES_SYNC_TOPIC = "article.es.sync.topic";
 }
