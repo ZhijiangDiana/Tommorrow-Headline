@@ -17,7 +17,6 @@ import com.heima.model.article.pojos.ApArticleContent;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.vos.SearchArticleVo;
-import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -137,7 +136,7 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         SearchArticleVo searchArticleVo = new SearchArticleVo();
         BeanUtils.copyProperties(apArticle, searchArticleVo);
         searchArticleVo.setContent(dto.getContent());
-        kafkaTemplate.send(ArticleConstants.ARTICLE_ES_SYNC_TOPIC, JSON.toJSONString(searchArticleVo));
+        kafkaTemplate.send(ArticleConstants.ARTICLE_ADD_INDEX_TOPIC, JSON.toJSONString(searchArticleVo));
 
         // 3.结果返回 返回文章id
         return ResponseResult.okResult(apArticle.getId());

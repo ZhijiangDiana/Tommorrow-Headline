@@ -10,5 +10,6 @@ public class ArticleConstants {
     public final static Short LOADTYPE_LOAD_NEW = 2;
     public final static String DEFAULT_TAG = "__all__";
 
-    public static final String ARTICLE_ES_SYNC_TOPIC = "article.es.sync.topic";
+    public static final String ARTICLE_ADD_INDEX_TOPIC = "article.es.add.topic";
+    public static final String ARTICLE_REMOVE_INDEX_TOPIC = "article.es.remove.topic";
 }

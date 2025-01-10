@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heima.common.constants.ArticleConstants;
 import com.heima.common.constants.WemediaConstants;
 import com.heima.common.constants.WmNewsMessageConstants;
 import com.heima.common.exception.CustomException;
@@ -201,6 +202,10 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 3.通知文章微服务打上删除标记
         if (wmNews.getArticleId() != null)
             kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_DELETE_TOPIC, wmNews.getArticleId().toString());
+
+        // 4.通知搜索微服务删除索引
+        if (wmNews.getArticleId() != null)
+            kafkaTemplate.send(ArticleConstants.ARTICLE_REMOVE_INDEX_TOPIC, wmNews.getArticleId().toString());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
