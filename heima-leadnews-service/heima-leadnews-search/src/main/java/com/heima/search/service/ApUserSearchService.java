@@ -1,5 +1,7 @@
 package com.heima.search.service;
 
+import com.heima.model.common.dtos.ResponseResult;
+
 public interface ApUserSearchService {
 
     /**
@@ -8,4 +10,8 @@ public interface ApUserSearchService {
      * @param userId
      */
     void addSearchHistory(String keyword, Integer userId);
+
+    ResponseResult getSearchHistory();
+
+    ResponseResult deleteSearchHistory(String id);
 }

@@ -1,7 +1,12 @@
 package com.heima.search.service.impl;
 
+import com.heima.model.common.dtos.ResponseResult;
+import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.pojos.ApUserSearch;
+import com.heima.model.user.pojos.ApUser;
 import com.heima.search.service.ApUserSearchService;
+import com.heima.utils.thread.ThreadLocalUtil;
+import com.mongodb.client.MongoClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -21,6 +26,8 @@ public class ApUserSearchServiceImpl implements ApUserSearchService {
     private MongoTemplate mongoTemplate;
 
     private static final Integer MAX_SEARCH_HISTORIES = 10;
+    @Autowired
+    private MongoClient mongo;
 
     @Async
     @Override
@@ -47,5 +54,25 @@ public class ApUserSearchServiceImpl implements ApUserSearchService {
             apUserSearch.setCreatedTime(new Date());
             mongoTemplate.save(apUserSearch);
         }
+    }
+
+    @Override
+    public ResponseResult getSearchHistory() {
+        ApUser user = (ApUser) ThreadLocalUtil.getObject();
+        if(user == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+
+        List<ApUserSearch> searchHistory = mongoTemplate.find(
+                Query.query(Criteria
+                        .where("userId").is(user.getId()))
+                        .with(Sort.by(Sort.Direction.DESC, "createTime")), ApUserSearch.class);
+
+        return ResponseResult.okResult(searchHistory);
+    }
+
+    @Override
+    public ResponseResult deleteSearchHistory(String id) {
+        mongoTemplate.remove(Query.query(Criteria.where("id").is(id)), ApUserSearch.class);
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }
