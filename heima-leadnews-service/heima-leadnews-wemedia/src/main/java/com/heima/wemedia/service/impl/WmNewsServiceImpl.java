@@ -236,6 +236,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     }
 
     private void saveRelativeInfo(List<String> materials, Integer newsId, Short type) {
+        materials = materials.stream().distinct().collect(Collectors.toList());    // 去重以适配引用相同图片的情况
         List<WmMaterial> dbMaterials = wmMaterialMapper.selectList(new LambdaQueryWrapper<WmMaterial>()
                 .select(WmMaterial::getId)
                 .in(WmMaterial::getUrl, materials));
