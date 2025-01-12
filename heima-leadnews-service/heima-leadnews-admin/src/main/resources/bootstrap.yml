@@ -1,0 +1,14 @@
+server:
+  port: 51803
+spring:
+  application:
+    name: leadnews-admin
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.200:8848
+      config:
+        server-addr: 192.168.1.200:8848
+        file-extension: yml
+        shared-configs:
+          - shared-seata.yaml
