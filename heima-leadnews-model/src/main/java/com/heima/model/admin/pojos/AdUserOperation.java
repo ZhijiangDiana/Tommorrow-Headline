@@ -52,7 +52,7 @@ public class AdUserOperation implements Serializable {
      * 操作类型
      */
     @TableField("type")
-    private Short type;
+    private Integer type;
 
     /**
      * 操作描述

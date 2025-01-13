@@ -2,15 +2,18 @@ package com.heima.admin.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heima.model.admin.pojos.AdUserOperation;
+import com.heima.model.common.enums.AdminOperationEnum;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 
 public interface AdUserOperationService extends IService<AdUserOperation> {
 
     /**
-     * 记录管理员操作日志
+     *
      * @param request
-     * @param OpDescription
+     * @param op
+     * @throws IOException
      */
-    void recordOperation(HttpServletRequest request, String OpDescription);
+    void recordOperation(HttpServletRequest request, AdminOperationEnum op) throws IOException;
 }
