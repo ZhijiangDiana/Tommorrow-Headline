@@ -19,15 +19,13 @@ public class WmTokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String userId = request.getHeader("userId");
         if (userId != null) {
-            WmUser wmUser = new WmUser();
-            wmUser.setId(Integer.parseInt(userId));
-            ThreadLocalUtil.setObject(wmUser);
+            ThreadLocalUtil.setUserId(Integer.parseInt(userId));
         }
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        ThreadLocalUtil.rmObject();
+        ThreadLocalUtil.rmUserId();
     }
 }

@@ -104,9 +104,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         }
 
         // 4.插入搜索记录
-        ApUser user = (ApUser) ThreadLocalUtil.getObject();
-        if (user != null && !user.getId().equals(0) && userSearchDto.getFromIndex() == 0)  // 不记录游客用户
-            apUserSearchService.addSearchHistory(userSearchDto.getSearchWords(), user.getId());
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId != null && !userId.equals(0) && userSearchDto.getFromIndex() == 0)  // 不记录游客用户
+            apUserSearchService.addSearchHistory(userSearchDto.getSearchWords(), userId);
 
         return ResponseResult.okResult(list);
     }

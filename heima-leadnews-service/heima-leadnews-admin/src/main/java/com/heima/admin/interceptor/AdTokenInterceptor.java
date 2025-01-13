@@ -1,6 +1,5 @@
 package com.heima.admin.interceptor;
 
-import com.heima.model.admin.pojos.AdUser;
 import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,15 +18,13 @@ public class AdTokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String userId = request.getHeader("userId");
         if (userId != null) {
-            AdUser adUser = new AdUser();
-            adUser.setId(Integer.parseInt(userId));
-            ThreadLocalUtil.setObject(adUser);
+            ThreadLocalUtil.setUserId(Integer.parseInt(userId));
         }
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        ThreadLocalUtil.rmObject();
+        ThreadLocalUtil.rmUserId();
     }
 }

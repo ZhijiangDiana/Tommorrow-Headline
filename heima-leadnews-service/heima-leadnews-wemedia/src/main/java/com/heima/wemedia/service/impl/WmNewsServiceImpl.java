@@ -59,13 +59,13 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
         dto.checkParam();
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
-        if (wmUser == null)
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
         IPage page = new Page(dto.getPage(), dto.getSize());
         LambdaQueryWrapper<WmNews> qw = new LambdaQueryWrapper<>();
-        qw.eq(WmNews::getUserId, wmUser.getId())
+        qw.eq(WmNews::getUserId, userId)
                 .orderByDesc(WmNews::getPublishTime);
         if (dto.getStatus() != null)
             qw.eq(WmNews::getStatus,dto.getStatus());
@@ -103,8 +103,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             wmNews.setType(null);
         if (dto.getType().equals(WemediaConstants.WM_NEWS_NONE_IMAGE))
             wmNews.setImages("");
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
-        wmNews.setUserId(wmUser.getId());
+        wmNews.setUserId(ThreadLocalUtil.getUserId());
         wmNews.setSubmitedTime(new Date());
         wmNews.setEnable(WemediaConstants.WM_NEWS_RELEASED);  // 默认上架
         if (dto.getId() != null) {

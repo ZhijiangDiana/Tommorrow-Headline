@@ -3,7 +3,6 @@ package com.heima.search.service.impl;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.pojos.ApUserSearch;
-import com.heima.model.user.pojos.ApUser;
 import com.heima.search.service.ApUserSearchService;
 import com.heima.utils.thread.ThreadLocalUtil;
 import com.mongodb.client.MongoClient;
@@ -58,13 +57,13 @@ public class ApUserSearchServiceImpl implements ApUserSearchService {
 
     @Override
     public ResponseResult getSearchHistory() {
-        ApUser user = (ApUser) ThreadLocalUtil.getObject();
-        if(user == null)
+        Integer userId = ThreadLocalUtil.getUserId();
+        if(userId == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
         List<ApUserSearch> searchHistory = mongoTemplate.find(
                 Query.query(Criteria
-                        .where("userId").is(user.getId()))
+                        .where("userId").is(userId))
                         .with(Sort.by(Sort.Direction.DESC, "createTime")), ApUserSearch.class);
 
         return ResponseResult.okResult(searchHistory);

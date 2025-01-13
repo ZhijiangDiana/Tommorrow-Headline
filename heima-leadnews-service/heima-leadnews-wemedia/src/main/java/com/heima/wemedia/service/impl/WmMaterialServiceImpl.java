@@ -2,7 +2,6 @@ package com.heima.wemedia.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heima.common.constants.WemediaConstants;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -73,9 +71,9 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
             return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
         }
 
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        Integer userId = ThreadLocalUtil.getUserId();
         WmMaterial wmMaterial = new WmMaterial();
-        wmMaterial.setUserId(wmUser.getId());
+        wmMaterial.setUserId(userId);
         wmMaterial.setUrl(fileId);
         wmMaterial.setType(WemediaConstants.WM_MATERIAL_PIC);
         wmMaterial.setIsCollection((short) 0);
@@ -91,10 +89,10 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
 
         // 分页查询
         IPage page = new Page(dto.getPage(), dto.getSize());
-        WmUser user = (WmUser) ThreadLocalUtil.getObject();
+        Integer userId = ThreadLocalUtil.getUserId();
 
         LambdaQueryWrapper<WmMaterial> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(WmMaterial::getUserId, user.getId())  // 按照用户查询
+        lqw.eq(WmMaterial::getUserId, userId)  // 按照用户查询
                 .orderByDesc(WmMaterial::getCreatedTime);  // 按照时间排序
         // 是否收藏
         if (dto.getIsCollection() != null && dto.getIsCollection() == 1)
@@ -126,8 +124,8 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         List<WmNewsMaterial> res = wmNewsMaterialMapper.selectList(query);
         if (!res.isEmpty())
             return ResponseResult.errorResult(AppHttpCodeEnum.MATERIAL_HAS_REFERENCE);
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
-        if (!wmUser.getId().equals(material.getUserId()))
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (!userId.equals(material.getUserId()))
             return ResponseResult.errorResult(AppHttpCodeEnum.NO_OPERATOR_AUTH);
 
         // 执行删除
@@ -142,11 +140,11 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         // 参数检验
         if (id == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        Integer userId = ThreadLocalUtil.getUserId();
         WmMaterial material = wmMaterialMapper.selectOne(new LambdaQueryWrapper<WmMaterial>()
                 .select(WmMaterial::getId, WmMaterial::getUserId)
                 .eq(WmMaterial::getId, id));
-        if (!wmUser.getId().equals(material.getUserId()))
+        if (!userId.equals(material.getUserId()))
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
 
         // 执行修改
@@ -161,11 +159,11 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         // 参数检验
         if (mid == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
-        WmUser wmUser = (WmUser) ThreadLocalUtil.getObject();
+        Integer userId = ThreadLocalUtil.getUserId();
         WmMaterial material = wmMaterialMapper.selectOne(new LambdaQueryWrapper<WmMaterial>()
                 .select(WmMaterial::getId, WmMaterial::getUserId)
                 .eq(WmMaterial::getId, mid));
-        if (!wmUser.getId().equals(material.getUserId()))
+        if (!userId.equals(material.getUserId()))
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
 
         // 执行修改

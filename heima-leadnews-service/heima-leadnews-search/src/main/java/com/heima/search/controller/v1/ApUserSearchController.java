@@ -4,10 +4,7 @@ import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.search.dtos.HistorySearchDto;
 import com.heima.search.service.ApUserSearchService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/history")
@@ -22,7 +19,7 @@ public class ApUserSearchController {
     }
 
     @PostMapping("/del")
-    public ResponseResult delSearchHistory(HistorySearchDto historySearchDto) {
+    public ResponseResult delSearchHistory(@RequestBody HistorySearchDto historySearchDto) {
         return apUserSearchService.deleteSearchHistory(historySearchDto.getId());
     }
 

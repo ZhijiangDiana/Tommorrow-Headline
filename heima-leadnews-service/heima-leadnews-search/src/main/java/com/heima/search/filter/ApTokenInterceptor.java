@@ -1,6 +1,5 @@
 package com.heima.search.filter;
 
-import com.heima.model.user.pojos.ApUser;
 import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -14,15 +13,13 @@ public class ApTokenInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String userId = request.getHeader("userId");
         if (userId != null) {
-            ApUser apUser = new ApUser();
-            apUser.setId(Integer.parseInt(userId));
-            ThreadLocalUtil.setObject(apUser);
+            ThreadLocalUtil.setUserId(Integer.parseInt(userId));
         }
         return true;
     }
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-        ThreadLocalUtil.rmObject();
+        ThreadLocalUtil.rmUserId();
     }
 }

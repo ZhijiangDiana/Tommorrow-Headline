@@ -9,15 +9,15 @@ public class ThreadLocalUtil {
 
     private final static ThreadLocal<Object> THREAD_LOCAL = new ThreadLocal<>();
 
-    public static void setObject(Object obj) {
+    public static void setUserId(Object obj) {
         THREAD_LOCAL.set(obj);
     }
 
-    public static Object getObject() {
-        return THREAD_LOCAL.get();
+    public static Integer getUserId() {
+        return (Integer) THREAD_LOCAL.get();
     }
 
-    public static void rmObject() {
+    public static void rmUserId() {
         THREAD_LOCAL.remove();
     }
 
