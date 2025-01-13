@@ -26,11 +26,6 @@ public class AdUserLoginController {
     @PostMapping("/in")
     @ApiOperation("管理员用户登录")
     public ResponseResult login(HttpServletRequest request, @RequestBody LoginDto dto) {
-        String ipAddress = request.getRemoteAddr();
-        if (ipAddress.equals("0:0:0:0:0:0:0:1")) {
-            ipAddress = "127.0.0.1";
-        }
-        log.info(ipAddress);
-        return adUserService.login(dto);
+        return adUserService.login(request, dto);
     }
 }

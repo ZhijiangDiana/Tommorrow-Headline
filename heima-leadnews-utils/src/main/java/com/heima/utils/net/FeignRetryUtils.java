@@ -1,4 +1,4 @@
-package com.heima.utils.common;
+package com.heima.utils.net;
 
 import com.heima.model.common.dtos.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
