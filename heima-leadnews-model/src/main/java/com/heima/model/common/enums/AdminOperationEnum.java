@@ -2,8 +2,10 @@ package com.heima.model.common.enums;
 
 import lombok.Getter;
 
+import java.io.Serializable;
+
 @Getter
-public enum AdminOperationEnum {
+public enum AdminOperationEnum implements Serializable {
 
     /**
      * 用户类
