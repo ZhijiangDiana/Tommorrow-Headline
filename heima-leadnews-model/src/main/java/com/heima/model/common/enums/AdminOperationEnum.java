@@ -25,7 +25,13 @@ public enum AdminOperationEnum implements Serializable {
      */
     ADD_CHANNEL(1010, "添加频道"),
     REMOVE_CHANNEL(1011, "删除频道"),
-    MODIFY_CHANNEL(1012, "修改频道");
+    MODIFY_CHANNEL(1012, "修改频道"),
+
+    /**
+     * 人工审核
+     */
+    SCAN_ACCEPTED(1020, "审核通过"),
+    SCAN_UNACCEPTED(1021, "审核不通过");
 
 
 

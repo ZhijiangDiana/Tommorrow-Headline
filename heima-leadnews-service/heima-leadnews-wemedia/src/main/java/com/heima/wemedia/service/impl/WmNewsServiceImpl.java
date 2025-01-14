@@ -13,17 +13,17 @@ import com.heima.common.exception.CustomException;
 import com.heima.model.common.dtos.PageResponseResult;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
-import com.heima.model.wemedia.dtos.WmNewsDto;
-import com.heima.model.wemedia.dtos.WmNewsEnableDto;
-import com.heima.model.wemedia.dtos.WmNewsPageReqDto;
+import com.heima.model.wemedia.dtos.*;
 import com.heima.model.wemedia.pojos.WmMaterial;
 import com.heima.model.wemedia.pojos.WmNews;
 import com.heima.model.wemedia.pojos.WmNewsMaterial;
 import com.heima.model.wemedia.pojos.WmUser;
+import com.heima.model.wemedia.vos.WmNewsAuthVO;
 import com.heima.utils.thread.ThreadLocalUtil;
 import com.heima.wemedia.mapper.WmMaterialMapper;
 import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmNewsMaterialMapper;
+import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsService;
 import com.heima.wemedia.service.WmNewsTaskService;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +55,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    private WmUserMapper wmUserMapper;
+    @Autowired
+    private WmNewsAutoScanServiceImpl wmNewsAutoScanServiceImpl;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -230,6 +235,85 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             WmNewsEnableDto wmNewsEnableDto = new WmNewsEnableDto(wmNews.getArticleId(), enable);
             kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_UP_OR_DOWN_TOPIC, JSON.toJSONString(wmNewsEnableDto));
         }
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult listVO(WmNewsAuthPageDto dto) {
+        dto.checkParam();
+
+        IPage<WmNews> pageRes = new Page<>();
+        LambdaQueryWrapper<WmNews> query = new LambdaQueryWrapper<WmNews>()
+                .orderByDesc(WmNews::getCreatedTime);
+        if (StringUtils.isNotEmpty(dto.getTitle()))
+            query.like(WmNews::getTitle, dto.getTitle());
+        if (dto.getStatus() != null)
+            query.like(WmNews::getStatus, dto.getStatus());
+        pageRes = page(pageRes, query);
+
+        PageResponseResult res = new PageResponseResult(dto.getPage(), dto.getSize(), (int) pageRes.getTotal());
+
+        // 组装VO
+        List<WmNews> pRes = pageRes.getRecords();
+        ArrayList<WmNewsAuthVO> fRes = new ArrayList<>();
+        for (WmNews e : pRes) {
+            WmNewsAuthVO wmNewsAuthVO = new WmNewsAuthVO();
+            BeanUtils.copyProperties(e, wmNewsAuthVO);
+            WmUser wmUser = wmUserMapper.selectOne(new LambdaQueryWrapper<WmUser>()
+                    .select(WmUser::getName)
+                    .eq(WmUser::getId, e.getUserId()));
+            wmNewsAuthVO.setAuthorName(wmUser.getName());
+            fRes.add(wmNewsAuthVO);
+        }
+
+        res.setData(fRes);
+
+        return res;
+    }
+
+    @Override
+    public ResponseResult oneVO(Integer id) {
+        WmNews news = getOne(new LambdaQueryWrapper<WmNews>().eq(WmNews::getId, id));
+        WmUser wmUser = wmUserMapper.selectOne(new LambdaQueryWrapper<WmUser>()
+                .select(WmUser::getName)
+                .eq(WmUser::getId, news.getUserId()));
+        WmNewsAuthVO res = new WmNewsAuthVO();
+        BeanUtils.copyProperties(news, res);
+        res.setAuthorName(wmUser.getName());
+        return ResponseResult.okResult(res);
+    }
+
+    @Override
+    public ResponseResult authFail(WmNewsAuthDto dto) {
+        if (dto.getId() == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        WmNews wmNews = getById(dto.getId());
+        if (!wmNews.getStatus().equals(WmNews.Status.ADMIN_AUTH.getCode()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        wmNews = new WmNews();
+        wmNews.setId(dto.getId());
+        wmNews.setStatus(WmNews.Status.FAIL.getCode());
+        wmNews.setReason(dto.getMsg());
+
+        updateById(wmNews);
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult authPass(WmNewsAuthDto dto) {
+        if (dto.getId() == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        WmNews wmNews = getById(dto.getId());
+        if (!wmNews.getStatus().equals(WmNews.Status.ADMIN_AUTH.getCode()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        wmNews = getById(dto.getId());
+        wmNewsAutoScanServiceImpl.autoSaveWmNews(wmNews);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

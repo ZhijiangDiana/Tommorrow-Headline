@@ -2,6 +2,8 @@ package com.heima.wemedia.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heima.model.common.dtos.ResponseResult;
+import com.heima.model.wemedia.dtos.WmNewsAuthDto;
+import com.heima.model.wemedia.dtos.WmNewsAuthPageDto;
 import com.heima.model.wemedia.dtos.WmNewsDto;
 import com.heima.model.wemedia.dtos.WmNewsPageReqDto;
 import com.heima.model.wemedia.pojos.WmNews;
@@ -48,4 +50,32 @@ public interface WmNewsService extends IService<WmNews> {
      * @return
      */
     ResponseResult upOrDown(Integer id, Short enable);
+
+    /**
+     * 管理员按条件分页查询文章
+     * @param dto
+     * @return
+     */
+    ResponseResult listVO(WmNewsAuthPageDto dto);
+
+    /**
+     * 管理员按id查询单个文章
+     * @param id
+     * @return
+     */
+    ResponseResult oneVO(Integer id);
+
+    /**
+     * 管理员审核文章不通过
+     * @param dto
+     * @return
+     */
+    ResponseResult authFail(WmNewsAuthDto dto);
+
+    /**
+     * 管理员审核文章通过
+     * @param dto
+     * @return
+     */
+    ResponseResult authPass(WmNewsAuthDto dto);
 }
