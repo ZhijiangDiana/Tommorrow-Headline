@@ -7,4 +7,6 @@ import lombok.Data;
 public class WmChannelDto extends PageRequestDto {
 
     private String name;
+
+    private Short status;
 }

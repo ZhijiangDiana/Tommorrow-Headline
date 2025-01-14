@@ -10,6 +10,7 @@ import com.heima.model.wemedia.dtos.WmChannelDto;
 import com.heima.model.wemedia.pojos.WmChannel;
 import com.heima.wemedia.mapper.WmChannelMapper;
 import com.heima.wemedia.service.WmChannelService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,9 +26,13 @@ public class WmChannelServiceImpl extends ServiceImpl<WmChannelMapper, WmChannel
         wmChannelDto.checkParam();
 
         IPage<WmChannel> pageRes = new Page<>();
-        pageRes = page(pageRes, new LambdaQueryWrapper<WmChannel>()
-                .like(WmChannel::getName, wmChannelDto.getName())
-                .orderByAsc(WmChannel::getOrd));
+        LambdaQueryWrapper<WmChannel> query = new LambdaQueryWrapper<WmChannel>()
+                .orderByAsc(WmChannel::getOrd);
+        if (StringUtils.isNotEmpty(wmChannelDto.getName()))
+            query.like(WmChannel::getName, wmChannelDto.getName());
+        if (wmChannelDto.getStatus() != null)
+            query.eq(WmChannel::getStatus, wmChannelDto.getStatus());
+        pageRes = page(pageRes, query);
 
         PageResponseResult res = new PageResponseResult(wmChannelDto.getPage(), wmChannelDto.getSize(), (int) pageRes.getTotal());
         res.setData(pageRes.getRecords());

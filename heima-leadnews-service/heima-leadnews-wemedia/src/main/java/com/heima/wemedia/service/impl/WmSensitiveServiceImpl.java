@@ -31,9 +31,11 @@ public class WmSensitiveServiceImpl extends ServiceImpl<WmSensitiveMapper, WmSen
         dto.checkParam();
 
         IPage<WmSensitive> pageQuery = new Page<>(dto.getPage(), dto.getSize());
-        pageQuery = page(pageQuery, new LambdaQueryWrapper<WmSensitive>()
-                .like(WmSensitive::getSensitives, dto.getName())
-                .orderByDesc(WmSensitive::getCreatedTime));
+        LambdaQueryWrapper<WmSensitive> query = new LambdaQueryWrapper<WmSensitive>()
+                .orderByDesc(WmSensitive::getCreatedTime);
+        if (StringUtils.isNotEmpty(dto.getName()))
+            query.like(WmSensitive::getSensitives, dto.getName());
+        pageQuery = page(pageQuery, query);
         PageResponseResult res = new PageResponseResult(dto.getPage(), dto.getSize(), (int) pageQuery.getTotal());
         res.setData(pageQuery.getRecords());
         return res;
