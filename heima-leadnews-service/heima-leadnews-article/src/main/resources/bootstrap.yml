@@ -12,6 +12,7 @@ spring:
         file-extension: yml
         shared-configs:
          - shared-seata.yaml
+         - shared-feign-fallback
 mybatis-plus:
   global-config:
     datacenter-id: 1

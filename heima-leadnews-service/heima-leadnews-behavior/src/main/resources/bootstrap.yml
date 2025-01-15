@@ -12,3 +12,4 @@ spring:
         file-extension: yml
         shared-configs:
          - shared-seata.yaml
+         - shared-feign-fallback
