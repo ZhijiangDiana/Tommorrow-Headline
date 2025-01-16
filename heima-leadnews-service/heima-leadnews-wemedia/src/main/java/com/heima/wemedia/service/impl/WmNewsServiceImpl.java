@@ -24,6 +24,7 @@ import com.heima.wemedia.mapper.WmMaterialMapper;
 import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmNewsMaterialMapper;
 import com.heima.wemedia.mapper.WmUserMapper;
+import com.heima.wemedia.service.WmNewsAddArticleService;
 import com.heima.wemedia.service.WmNewsService;
 import com.heima.wemedia.service.WmNewsTaskService;
 import org.apache.commons.lang.StringUtils;
@@ -58,8 +59,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Autowired
     private WmUserMapper wmUserMapper;
+
     @Autowired
-    private WmNewsAutoScanServiceImpl wmNewsAutoScanServiceImpl;
+    private WmNewsAddArticleService wmNewsAddArticleService;
 
     @Override
     public ResponseResult pageListNews(WmNewsPageReqDto dto) {
@@ -194,9 +196,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         if (wmNews == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST);
 
-        // 1.判断文章是否未发布
-        if (!Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
-            return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_HAS_PUBLISHED);
+//        // 1.判断文章是否未发布
+//        if (!Objects.equals(wmNews.getStatus(), WmNews.Status.PUBLISHED.getCode()))
+//            return ResponseResult.errorResult(AppHttpCodeEnum.NEWS_HAS_PUBLISHED);
 
         // 2.删除文章及其与素材的关联
         removeById(nid);
@@ -313,7 +315,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
 
         wmNews = getById(dto.getId());
-        wmNewsAutoScanServiceImpl.autoSaveWmNews(wmNews);
+        wmNewsAddArticleService.autoSaveWmNews(wmNews);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

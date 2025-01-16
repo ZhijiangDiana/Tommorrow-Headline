@@ -14,10 +14,4 @@ public interface WmNewsAutoScanService {
      * @param id
      */
     void autoScanWmNews(Integer id);
-
-    /**
-     * 将审核后的文章添加到app端文章中并设置定时发布
-     * @param wmNews
-     */
-    void autoSaveWmNews(WmNews wmNews);
 }
