@@ -18,4 +18,8 @@ public class BehaviorConstants {
 
     public static final Short DISLIKE_OPERATION = 0;
     public static final Short DISCARD_DISLIKE_OPERATION = 1;
+
+
+    public static final String FAN_LIST = "fans:";
+    public static final String FOLLOW_LIST = "follows:";
 }
