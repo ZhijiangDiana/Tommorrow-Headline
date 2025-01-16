@@ -8,6 +8,7 @@ import com.heima.model.behavior.dtos.LikesBehaviorDto;
 import com.heima.model.behavior.dtos.ReadBehaviorDto;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
+import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,24 +22,39 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
     public ResponseResult like(LikesBehaviorDto dto) {
         if (dto.getArticleId() == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
-        long incr = 0;
-        if (BehaviorConstants.LIKE_OPERATION.equals(dto.getOperation()))
-            incr = 1;
-        else if (BehaviorConstants.DISCARD_LIKE_OPERATION.equals(dto.getOperation()))
-            incr = -1;
+        // setKey1表示文章视角看，文章的各项数据
+        // setKey2表示用户视角看，用户的各项数据
+        String setKey1 = null, setKey2 = null;
+        if (LikesBehaviorDto.ARTICLE_LIKE_CODE.equals(dto.getType())) {
+            setKey1 = BehaviorConstants.ARTICLE_LIKE;
+            setKey2 = BehaviorConstants.USER_ARTICLE_LIKE;
+        } else if (LikesBehaviorDto.MOMENT_LIKE_CODE.equals(dto.getType())) {
+            setKey1 = BehaviorConstants.MOMENT_LIKE;
+            setKey2 = BehaviorConstants.USER_MOMENT_LIKE;
+        } else if (LikesBehaviorDto.COMMENT_LIKE_CODE.equals(dto.getType())) {
+            setKey1 = BehaviorConstants.COMMENT_LIKE;
+            setKey2 = BehaviorConstants.USER_COMMENT_LIKE;
+        }
+        String articleIdString = String.valueOf(dto.getArticleId());
+        String userIdString = String.valueOf(userId);
+        setKey1 += articleIdString;
+        setKey2 += userIdString;
 
-        String key = null;
-        if (BehaviorConstants.ARTICLE_LIKE_CODE.equals(dto.getType()))
-            key = BehaviorConstants.ARTICLE_LIKE;
-        else if (BehaviorConstants.MOMENT_LIKE_CODE.equals(dto.getType()))
-            key = BehaviorConstants.MOMENT_LIKE;
-        else if (BehaviorConstants.COMMENT_LIKE_CODE.equals(dto.getType()))
-            key = BehaviorConstants.COMMENT_LIKE;
-        key += String.valueOf(dto.getArticleId());
+        long now = System.currentTimeMillis();
+        if (LikesBehaviorDto.LIKE_OPERATION.equals(dto.getOperation())) {
+            // 文章点赞数据存入数据库
+            cacheService.zAdd(setKey1, userIdString, now);
+            cacheService.zAdd(setKey2, articleIdString, now);
+        } else if (LikesBehaviorDto.DISCARD_LIKE_OPERATION.equals(dto.getOperation())) {
+            // 文章点赞数据删除
+            cacheService.zRemove(setKey1, userIdString);
+            cacheService.zRemove(setKey2, articleIdString);
+        }
 
-        cacheService.setIfAbsent(key, "0");
-        cacheService.incrBy(key, incr);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
@@ -47,16 +63,25 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
     public ResponseResult dislike(DislikeBehaviorDto dto) {
         if (dto.getArticleId() == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
-        long incr = 0;
-        if (BehaviorConstants.DISLIKE_OPERATION.equals(dto.getType()))
-            incr = 1;
-        else if (BehaviorConstants.DISCARD_DISLIKE_OPERATION.equals(dto.getType()))
-            incr = -1;
+        String articleIdString = dto.getArticleId().toString();
+        String userIdString = String.valueOf(userId);
+        // setKey1表示文章视角看，文章的各项数据
+        String key1 = BehaviorConstants.ARTICLE_DISLIKE + articleIdString;
+        // setKey2表示用户视角看，用户的各项数据
+        String key2 = BehaviorConstants.USER_ARTICLE_DISLIKE + userIdString;
 
-        String key = BehaviorConstants.ARTICLE_DISLIKE + dto.getArticleId();
-        cacheService.setIfAbsent(key, "0");
-        cacheService.incrBy(key, incr);
+        long now = System.currentTimeMillis();
+        if (DislikeBehaviorDto.DISLIKE_OPERATION.equals(dto.getType())) {
+            cacheService.zAdd(key1, userIdString, now);
+            cacheService.zAdd(key2, articleIdString, now);
+        } else if (DislikeBehaviorDto.DISCARD_DISLIKE_OPERATION.equals(dto.getType())) {
+            cacheService.zRemove(key1, userIdString);
+            cacheService.zRemove(key2, articleIdString);
+        }
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
@@ -65,10 +90,21 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
     public ResponseResult read(ReadBehaviorDto dto) {
         if (dto.getArticleId() == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
-        String key = BehaviorConstants.ARTICLE_READ + dto.getArticleId();
-        cacheService.setIfAbsent(key, "0");
-        cacheService.incrBy(key, dto.getCount());
+        String articleIdString = dto.getArticleId().toString();
+        String userIdString = String.valueOf(userId);
+        // articleKey表示文章的阅读量
+        String articleKey = BehaviorConstants.ARTICLE_READ_COUNT + articleIdString;
+        // userKey表示用户阅读的所有文章集合
+        String userKey = BehaviorConstants.USER_ARTICLE_READ + userIdString;
+
+        // 存入数据库
+        cacheService.setIfAbsent(articleKey, "0");
+        cacheService.incrBy(articleKey, dto.getCount());
+        cacheService.sAdd(userKey, articleIdString);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

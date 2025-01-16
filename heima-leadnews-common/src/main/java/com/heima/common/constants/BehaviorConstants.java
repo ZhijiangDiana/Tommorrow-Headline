@@ -5,31 +5,36 @@ public class BehaviorConstants {
     /**
      * 点赞类redis主键
      */
+    // 以下三个常量表示文章视角下的点赞数据，即文章被哪些用户点赞，文章的点赞数
     public static final String ARTICLE_LIKE = "article_like:";
     public static final String MOMENT_LIKE = "moment_like:";
     public static final String COMMENT_LIKE = "comment_like:";
+    // 以下三个常量表示用户视角下的点赞数据，即用户点赞了哪些文章
+    public static final String USER_ARTICLE_LIKE = "user_article_like:";
+    public static final String USER_MOMENT_LIKE = "user_moment_like:";
+    public static final String USER_COMMENT_LIKE = "user_comment_like:";
 
-    public static final Short ARTICLE_LIKE_CODE = 0;
-    public static final Short MOMENT_LIKE_CODE = 1;
-    public static final Short COMMENT_LIKE_CODE = 2;
-
-    public static final Short LIKE_OPERATION = 0;
-    public static final Short DISCARD_LIKE_OPERATION = 1;
 
     /**
      * 不喜欢类相关redis主键
      */
-    public static final String ARTICLE_READ = "article_read:";
     public static final String ARTICLE_DISLIKE = "article_dislike:";
+    public static final String USER_ARTICLE_DISLIKE = "user_article_dislike:";
 
-    public static final Short DISLIKE_OPERATION = 0;
-    public static final Short DISCARD_DISLIKE_OPERATION = 1;
+
+    /**
+     * 文章阅读量redis主键
+     */
+    public static final String ARTICLE_READ_COUNT = "article_read:";
+    public static final String USER_ARTICLE_READ = "user_article_read:";
+
 
     /**
      * 关注类相关redis主键
      */
     public static final String FAN_LIST = "fans:";
     public static final String FOLLOW_LIST = "follows:";
+
 
     /**
      * 收藏相关redis主键
