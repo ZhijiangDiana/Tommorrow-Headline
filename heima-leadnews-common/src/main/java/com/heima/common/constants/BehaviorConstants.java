@@ -18,29 +18,37 @@ public class BehaviorConstants {
     /**
      * 不喜欢类相关redis主键
      */
+    // 表示文章视角下的不喜欢数据
     public static final String ARTICLE_DISLIKE = "article_dislike:";
+    // 表示用户视角下的不喜欢数据
     public static final String USER_ARTICLE_DISLIKE = "user_article_dislike:";
 
 
     /**
      * 文章阅读量redis主键
      */
+    // 表示文章视角下的阅读数据
     public static final String ARTICLE_READ_COUNT = "article_read:";
+    // 表示文章视角下的阅读数据
     public static final String USER_ARTICLE_READ = "user_article_read:";
 
 
     /**
      * 关注类相关redis主键
      */
+    // 表示作者视角下的关注数据，即粉丝数
     public static final String FAN_LIST = "fans:";
+    // 表示用户视角下的关注数据，即关注作者数
     public static final String FOLLOW_LIST = "follows:";
 
 
     /**
      * 收藏相关redis主键
      */
+    // 以下两个常量表示用户视角下的收藏数据数据
     public static final String ARTICLE_COLLECTION = "article_collection:";
     public static final String MOMENT_COLLECTION = "moment_collection:";
+    // 以下两个常量表示文章视角下的收藏数据数据
     public static final String ARTICLE_BE_COLLECTED = "article_be_collected:";
     public static final String MOMENT_BE_COLLECTED = "moment_be_collected:";
 

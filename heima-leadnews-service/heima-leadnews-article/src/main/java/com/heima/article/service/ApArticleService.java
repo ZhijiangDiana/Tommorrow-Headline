@@ -3,6 +3,7 @@ package com.heima.article.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heima.model.article.dtos.ArticleDto;
 import com.heima.model.article.dtos.ArticleHomeDto;
+import com.heima.model.article.dtos.ArticleInfoDto;
 import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.common.dtos.ResponseResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,5 +28,12 @@ public interface ApArticleService extends IService<ApArticle> {
      * @param dto
      * @return
      */
-    ResponseResult saveArticle(@RequestBody ArticleDto dto);
+    ResponseResult saveArticle(ArticleDto dto);
+
+    /**
+     * 加载文章点赞收藏等数据
+     * @param dto
+     * @return
+     */
+    ResponseResult loadInfo(ArticleInfoDto dto);
 }

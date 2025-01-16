@@ -9,14 +9,19 @@ import com.heima.article.mapper.ApArticleMapper;
 import com.heima.article.service.ApArticleService;
 import com.heima.article.service.ArticleFreemarkerService;
 import com.heima.common.constants.ArticleConstants;
+import com.heima.common.constants.BehaviorConstants;
+import com.heima.common.redis.CacheService;
 import com.heima.model.article.dtos.ArticleDto;
 import com.heima.model.article.dtos.ArticleHomeDto;
+import com.heima.model.article.dtos.ArticleInfoDto;
 import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.article.pojos.ApArticleConfig;
 import com.heima.model.article.pojos.ApArticleContent;
+import com.heima.model.article.vos.ArticleInfoVO;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.vos.SearchArticleVo;
+import com.heima.utils.thread.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -48,6 +53,9 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
 
     @Autowired
     private ArticleFreemarkerService articleFreemarkerService;
+
+    @Autowired
+    private CacheService cacheService;
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -140,5 +148,53 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
 
         // 3.结果返回 返回文章id
         return ResponseResult.okResult(apArticle.getId());
+    }
+
+    @Override
+    public ResponseResult loadInfo(ArticleInfoDto dto) {
+        Long articleId = dto.getArticleId();
+        Integer authorId = dto.getAuthorId();
+        if (articleId == null || authorId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+
+        String userIdString = userId.toString();
+        ArticleInfoVO articleInfoVO = new ArticleInfoVO();
+        // 用户是否已点赞
+        articleInfoVO.setIslike(cacheService.zScore(
+                BehaviorConstants.ARTICLE_LIKE + articleId,
+                userIdString) != null
+        );
+        // 文章被点赞次数
+        articleInfoVO.setLikeCnt(cacheService.zSize(
+                BehaviorConstants.ARTICLE_LIKE + articleId).intValue()
+        );
+        // 用户是否已不喜欢
+        articleInfoVO.setIsunlike(cacheService.zScore(
+                BehaviorConstants.ARTICLE_DISLIKE + articleId,
+                userIdString) != null
+        );
+        // 用户是否已关注
+        articleInfoVO.setIsfollow(cacheService.zScore(
+                BehaviorConstants.FAN_LIST + authorId,
+                userIdString) != null
+        );
+        // 作者粉丝数
+        articleInfoVO.setFollowCnt(cacheService.zSize(
+                BehaviorConstants.FAN_LIST + authorId).intValue()
+        );
+        // 用户是否已收藏
+        articleInfoVO.setIscollection(cacheService.zScore(
+                BehaviorConstants.ARTICLE_BE_COLLECTED + articleId,
+                userIdString) != null
+        );
+        // 文章收藏数
+        articleInfoVO.setCollectionCnt(cacheService.zSize(
+                BehaviorConstants.ARTICLE_BE_COLLECTED + articleId).intValue()
+        );
+
+        return ResponseResult.okResult(articleInfoVO);
     }
 }

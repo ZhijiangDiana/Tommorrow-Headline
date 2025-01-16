@@ -3,6 +3,7 @@ package com.heima.article.controller.v1;
 import com.heima.article.service.ApArticleService;
 import com.heima.common.constants.ArticleConstants;
 import com.heima.model.article.dtos.ArticleHomeDto;
+import com.heima.model.article.dtos.ArticleInfoDto;
 import com.heima.model.common.dtos.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,5 +36,10 @@ public class ArticleHomeController {
     @PostMapping("/loadnew")
     public ResponseResult loadnew(@RequestBody ArticleHomeDto dto) {
         return apArticleService.load(dto, ArticleConstants.LOADTYPE_LOAD_NEW);
+    }
+
+    @PostMapping("//load_article_behavior")
+    public ResponseResult loadArticleBehavior(@RequestBody ArticleInfoDto dto) {
+        return apArticleService.loadInfo(dto);
     }
 }
