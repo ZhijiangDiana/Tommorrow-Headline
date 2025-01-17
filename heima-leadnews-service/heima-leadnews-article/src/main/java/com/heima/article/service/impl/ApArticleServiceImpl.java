@@ -78,7 +78,7 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             type = ArticleConstants.LOADTYPE_LOAD_MORE;
 
         // 频道参数
-        if (StringUtils.isBlank(dto.getTag()))
+        if (StringUtils.isEmpty(dto.getTag()))
             dto.setTag(ArticleConstants.DEFAULT_TAG);
 
         // 时间校验
@@ -128,6 +128,12 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             // 2.2存在id 修改文章、文章内容
             // 修改文章
             updateById(apArticle);
+            // 修改文章配置
+            ApArticleConfig apArticleConfig = new ApArticleConfig();
+            apArticleConfig.setIsDown(false);
+            apArticleConfig.setIsDelete(false);
+            apArticleConfigMapper.update(apArticleConfig, new LambdaQueryWrapper<ApArticleConfig>()
+                    .eq(ApArticleConfig::getArticleId, dto.getId()));
             // 修改文章内容
             ApArticleContent apArticleContent = apArticleContentMapper.selectOne(
                     new LambdaQueryWrapper<ApArticleContent>()
