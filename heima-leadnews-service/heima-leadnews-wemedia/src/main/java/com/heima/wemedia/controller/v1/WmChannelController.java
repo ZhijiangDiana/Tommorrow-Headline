@@ -31,9 +31,7 @@ public class WmChannelController {
 
     @GetMapping("/channels")
     public ResponseResult listChannels() {
-        return ResponseResult.okResult(wmChannelService.list(new LambdaQueryWrapper<WmChannel>()
-                .eq(WmChannel::getStatus, (short) 1)
-                .orderByAsc(WmChannel::getOrd)));
+        return wmChannelService.listAllChannels();
     }
 
     @GetMapping("/del/{id}")

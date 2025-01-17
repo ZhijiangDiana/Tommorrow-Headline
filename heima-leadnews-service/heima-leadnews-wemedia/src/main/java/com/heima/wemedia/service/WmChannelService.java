@@ -12,5 +12,16 @@ import com.heima.model.wemedia.pojos.WmChannel;
  */
 public interface WmChannelService extends IService<WmChannel> {
 
+    /**
+     * 分页查询频道
+     * @param wmChannelDto
+     * @return
+     */
     ResponseResult pageQuery(WmChannelDto wmChannelDto);
+
+    /**
+     * 列出所有频道
+     * @return
+     */
+    ResponseResult listAllChannels();
 }

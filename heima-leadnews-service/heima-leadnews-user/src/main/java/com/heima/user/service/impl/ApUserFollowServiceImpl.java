@@ -1,14 +1,12 @@
 package com.heima.user.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heima.apis.wemedia.IWemediaUserClient;
+import com.heima.apis.wemedia.IWemediaClient;
 import com.heima.common.constants.BehaviorConstants;
 import com.heima.common.redis.CacheService;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.user.dtos.UserRelationDto;
-import com.heima.model.user.pojos.ApUser;
 import com.heima.model.user.pojos.ApUserFollow;
 import com.heima.user.mapper.ApUserMapper;
 import com.heima.user.mapper.ApUserRelationMapper;
@@ -17,13 +15,11 @@ import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-
 @Service
 public class ApUserFollowServiceImpl extends ServiceImpl<ApUserRelationMapper, ApUserFollow> implements ApUserFollowService {
 
     @Autowired
-    private IWemediaUserClient wemediaUserClient;
+    private IWemediaClient wemediaUserClient;
 
     @Autowired
     private ApUserMapper apUserMapper;

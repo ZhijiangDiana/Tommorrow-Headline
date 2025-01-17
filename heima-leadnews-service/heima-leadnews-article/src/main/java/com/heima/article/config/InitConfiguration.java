@@ -1,4 +1,4 @@
-package com.heima.wemedia.config;
+package com.heima.article.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Configuration;
  * @Date 2024/12/29-19:31:13
  */
 @Configuration
-@ComponentScan("com.heima.apis.article.fallback")
-@ComponentScan("com.heima.apis.schedule.fallback")
-@ComponentScan("com.heima.apis.admin.fallback")
 @ComponentScan("com.heima.apis.wemedia.fallback")
 public class InitConfiguration {
 }

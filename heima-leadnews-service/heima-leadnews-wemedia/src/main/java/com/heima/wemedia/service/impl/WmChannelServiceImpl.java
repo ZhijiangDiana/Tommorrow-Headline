@@ -39,4 +39,11 @@ public class WmChannelServiceImpl extends ServiceImpl<WmChannelMapper, WmChannel
 
         return res;
     }
+
+    @Override
+    public ResponseResult listAllChannels() {
+        return ResponseResult.okResult(list(new LambdaQueryWrapper<WmChannel>()
+                .eq(WmChannel::getStatus, (short) 1)
+                .orderByAsc(WmChannel::getOrd)));
+    }
 }
