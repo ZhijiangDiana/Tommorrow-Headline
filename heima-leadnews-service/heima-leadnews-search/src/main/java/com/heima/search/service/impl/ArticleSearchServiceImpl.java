@@ -24,7 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -35,6 +41,8 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
 
     @Autowired
     private ApUserSearchService apUserSearchService;
+
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
     /**
      * ES文章分页搜索
@@ -61,9 +69,9 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         boolQueryBuilder.must(queryStringQueryBuilder);
 
         // 查询小于mindate的数据
-        RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(SearchConstants.AP_ARTICLE_PUBLISH_TIME)
-                .lt(userSearchDto.getMinBehotTime().getTime());
-        boolQueryBuilder.filter(rangeQueryBuilder);
+//        RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(SearchConstants.AP_ARTICLE_PUBLISH_TIME)
+//                .lt(userSearchDto.getMinBehotTime().getTime());
+//        boolQueryBuilder.filter(rangeQueryBuilder);
 
         // 分页查询
         searchSourceBuilder.from(0);
@@ -84,12 +92,12 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
         // 3.结果封装
-        ArrayList<Map<String, String>> list = new ArrayList<>();
+        ArrayList<Map<String, Object>> list = new ArrayList<>();
 
         SearchHit[] hits = searchResponse.getHits().getHits();
         for (SearchHit hit : hits) {
             String json = hit.getSourceAsString();
-            Map<String, String> map = JSON.parseObject(json, Map.class);
+            Map<String, Object> map = JSON.parseObject(json, Map.class);
             // 处理高亮
             if (hit.getHighlightFields() != null && !hit.getHighlightFields().isEmpty()) {
                 Text[] titles = hit.getHighlightFields().get(SearchConstants.AP_ARTICLE_TITLE).getFragments();
@@ -100,6 +108,15 @@ public class ArticleSearchServiceImpl implements ArticleSearchService {
                 // 原始标题
                 map.put("h_title", map.get(SearchConstants.AP_ARTICLE_TITLE));
             }
+
+            // 格式化publishTime为2025-01-15T18:47:14.000+00:00形式
+            Long publishTime = (Long) map.get(SearchConstants.AP_ARTICLE_PUBLISH_TIME);
+            Date date = new Date(publishTime);
+            ZonedDateTime zonedDateTime = date.toInstant().atZone(ZoneOffset.UTC);
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            String formattedDate = zonedDateTime.format(formatter);
+            map.put(SearchConstants.AP_ARTICLE_PUBLISH_TIME, formattedDate);
+
             list.add(map);
         }
 
