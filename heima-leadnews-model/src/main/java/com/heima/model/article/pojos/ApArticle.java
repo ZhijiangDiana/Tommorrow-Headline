@@ -95,22 +95,16 @@ public class ApArticle implements Serializable {
     private Integer views;
 
     /**
+     * 国家
+     */
+    @TableField("nation")
+    private String nation;
+
+    /**
      * 省市
      */
-    @TableField("province_id")
-    private Integer provinceId;
-
-    /**
-     * 市区
-     */
-    @TableField("city_id")
-    private Integer cityId;
-
-    /**
-     * 区县
-     */
-    @TableField("county_id")
-    private Integer countyId;
+    @TableField("province")
+    private String province;
 
     /**
      * 创建时间
@@ -140,4 +134,10 @@ public class ApArticle implements Serializable {
      */
     @TableField("static_url")
     private String staticUrl;
+
+    /**
+     * 文章正文简介
+     */
+    @TableField("description")
+    private String description;
 }

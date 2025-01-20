@@ -3,6 +3,7 @@ package com.heima.es;
 import com.alibaba.fastjson.JSON;
 import com.heima.es.mapper.ApArticleMapper;
 import com.heima.es.pojo.SearchArticleVo;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RequestOptions;
@@ -13,9 +14,17 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.indices.GetIndexRequest;
+import org.elasticsearch.client.indices.GetIndexResponse;
+import org.elasticsearch.client.RestHighLevelClient;
 
+
+import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @SpringBootTest
 @RunWith(SpringRunner.class)
 public class ApArticleTest {
@@ -46,5 +55,23 @@ public class ApArticleTest {
         }
 
         restHighLevelClient.bulk(bq, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void deleteAll() throws IOException {
+        // 获取所有索引名称
+        GetIndexRequest getIndexRequest = new GetIndexRequest("*"); // 获取所有索引
+        GetIndexResponse getIndexResponse = restHighLevelClient.indices().get(getIndexRequest, RequestOptions.DEFAULT);
+        String[] indexNames = getIndexResponse.getIndices(); // 获取索引名数组
+
+//        for (String indexName : indexNames) {
+//            log.info(indexName);
+//        }
+        // 删除每个索引
+        for (String indexName : indexNames) {
+            DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+            restHighLevelClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+            System.out.println("Deleted index: " + indexName);
+        }
     }
 }
