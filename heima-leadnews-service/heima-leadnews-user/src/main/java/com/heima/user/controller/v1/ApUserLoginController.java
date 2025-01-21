@@ -1,6 +1,7 @@
 package com.heima.user.controller.v1;
 
 import com.heima.model.common.dtos.ResponseResult;
+import com.heima.model.user.dtos.CodeLoginDto;
 import com.heima.model.user.dtos.LoginDto;
 import com.heima.user.service.ApUserService;
 import io.swagger.annotations.Api;
@@ -23,5 +24,15 @@ public class ApUserLoginController {
     @ApiOperation("用户登录")
     public ResponseResult login(@RequestBody LoginDto dto) {
         return apUserService.login(dto);
+    }
+
+    @PostMapping("/login_by_code")
+    public ResponseResult loginByCode(@RequestBody CodeLoginDto dto) {
+        return apUserService.loginByCode(dto);
+    }
+
+    @PostMapping("/send_verify_code")
+    public ResponseResult sendVerifyCode(String phone) {
+        return apUserService.sendVerifyCode(phone);
     }
 }

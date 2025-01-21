@@ -64,7 +64,11 @@ public class ApUser implements Serializable {
             2 未知
      */
     @TableField("sex")
-    private Boolean sex;
+    private Short sex;
+
+    public static final Short MALE = 0;
+    public static final Short FEMALE = 1;
+    public static final Short UNKNOWN = 2;
 
     /**
      * 0 未
@@ -93,6 +97,10 @@ public class ApUser implements Serializable {
      */
     @TableField("flag")
     private Short flag;
+
+    public static final Short NORMAL_USER = 0;
+    public static final Short WEMEDIA_USER = 1;
+    public static final Short AUTHORITY_USER = 2;
 
     /**
      * 注册时间
