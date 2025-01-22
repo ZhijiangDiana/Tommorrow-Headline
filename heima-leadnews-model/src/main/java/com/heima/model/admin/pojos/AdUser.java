@@ -72,6 +72,9 @@ public class AdUser implements Serializable {
      */
     @TableField("status")
     private Integer status;
+    public static final Integer TEMPORARY_BANNED = 0;
+    public static final Integer FOREVER_BANNED = 1;
+    public static final Integer AVAILABLE = 9;
 
     /**
      * 邮箱

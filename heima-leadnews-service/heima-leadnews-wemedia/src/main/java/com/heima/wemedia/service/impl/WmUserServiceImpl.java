@@ -45,6 +45,10 @@ public class WmUserServiceImpl extends ServiceImpl<WmUserMapper, WmUser> impleme
         if (dbUser == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID, "用户名或密码错误");
 
+        // 1.1.1检查是否被封禁
+        if (!WmUser.AVAILABLE.equals(dbUser.getStatus()))
+            return ResponseResult.errorResult(AppHttpCodeEnum.USER_IS_BANNED, "用户已被封禁");
+
         // 1.2 比对密码
         String salt = dbUser.getSalt();
         String password = dto.getPassword();

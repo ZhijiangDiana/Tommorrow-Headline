@@ -59,6 +59,10 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
             if (dbUser == null)
                 return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "用户信息不存在");
 
+            // 1.1.1检查是否被封禁
+            if (dbUser.getStatus())
+                return ResponseResult.errorResult(AppHttpCodeEnum.USER_IS_BANNED);
+
             // 1.2 比对密码
             String salt = dbUser.getSalt();
             String password = dto.getPassword();
