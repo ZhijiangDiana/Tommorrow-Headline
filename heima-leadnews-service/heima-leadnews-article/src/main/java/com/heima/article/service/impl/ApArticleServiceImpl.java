@@ -167,39 +167,26 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
 
         String userIdString = userId.toString();
+        String authorIdString = authorId.toString();
+        String articleIdString = articleId.toString();
         ArticleInfoVO articleInfoVO = new ArticleInfoVO();
         // 用户是否已点赞
-        articleInfoVO.setIslike(cacheService.zScore(
-                BehaviorConstants.ARTICLE_LIKE + articleId,
-                userIdString) != null
-        );
+        articleInfoVO.setIslike(cacheService.zScore(BehaviorConstants.USER_ARTICLE_LIKE + userIdString, articleIdString) != null);
         // 文章被点赞次数
-        articleInfoVO.setLikeCnt(cacheService.zSize(
-                BehaviorConstants.ARTICLE_LIKE + articleId).intValue()
-        );
+        String likeCntStr = cacheService.get(BehaviorConstants.ARTICLE_LIKE_CNT + articleIdString);
+        articleInfoVO.setLikeCnt(likeCntStr == null ? 0 : Integer.parseInt(likeCntStr));
         // 用户是否已不喜欢
-        articleInfoVO.setIsunlike(cacheService.zScore(
-                BehaviorConstants.ARTICLE_DISLIKE + articleId,
-                userIdString) != null
-        );
+        articleInfoVO.setIsunlike(cacheService.zScore(BehaviorConstants.USER_ARTICLE_DISLIKE + userIdString, articleIdString) != null);
         // 用户是否已关注
-        articleInfoVO.setIsfollow(cacheService.zScore(
-                BehaviorConstants.FAN_LIST + authorId,
-                userIdString) != null
-        );
+        articleInfoVO.setIsfollow(cacheService.zScore(BehaviorConstants.FOLLOW_LIST + userIdString, authorIdString) != null);
         // 作者粉丝数
-        articleInfoVO.setFollowCnt(cacheService.zSize(
-                BehaviorConstants.FAN_LIST + authorId).intValue()
-        );
+        Long followCntStr = cacheService.zSize(BehaviorConstants.FAN_LIST + authorIdString);
+        articleInfoVO.setFollowCnt(followCntStr == null ? 0 : followCntStr.intValue());
         // 用户是否已收藏
-        articleInfoVO.setIscollection(cacheService.zScore(
-                BehaviorConstants.ARTICLE_BE_COLLECTED + articleId,
-                userIdString) != null
-        );
+        articleInfoVO.setIscollection(cacheService.zScore(BehaviorConstants.USER_ARTICLE_COLLECT + userIdString, articleIdString) != null);
         // 文章收藏数
-        articleInfoVO.setCollectionCnt(cacheService.zSize(
-                BehaviorConstants.ARTICLE_BE_COLLECTED + articleId).intValue()
-        );
+        String collectCntStr = cacheService.get(BehaviorConstants.ARTICLE_COLLECT_CNT + articleIdString);
+        articleInfoVO.setCollectionCnt(collectCntStr == null ? 0 : Integer.parseInt(collectCntStr));
 
         return ResponseResult.okResult(articleInfoVO);
     }

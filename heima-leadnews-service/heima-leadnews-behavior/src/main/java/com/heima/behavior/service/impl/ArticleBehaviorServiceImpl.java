@@ -30,13 +30,13 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         // setKey2表示用户视角看，用户的各项数据
         String setKey1 = null, setKey2 = null;
         if (LikesBehaviorDto.ARTICLE_LIKE_CODE.equals(dto.getType())) {
-            setKey1 = BehaviorConstants.ARTICLE_LIKE;
+            setKey1 = BehaviorConstants.ARTICLE_LIKE_CNT;
             setKey2 = BehaviorConstants.USER_ARTICLE_LIKE;
         } else if (LikesBehaviorDto.MOMENT_LIKE_CODE.equals(dto.getType())) {
-            setKey1 = BehaviorConstants.MOMENT_LIKE;
+            setKey1 = BehaviorConstants.MOMENT_LIKE_CNT;
             setKey2 = BehaviorConstants.USER_MOMENT_LIKE;
         } else if (LikesBehaviorDto.COMMENT_LIKE_CODE.equals(dto.getType())) {
-            setKey1 = BehaviorConstants.COMMENT_LIKE;
+            setKey1 = BehaviorConstants.COMMENT_LIKE_CNT;
             setKey2 = BehaviorConstants.USER_COMMENT_LIKE;
         }
         String articleIdString = String.valueOf(dto.getArticleId());
@@ -47,12 +47,14 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         long now = System.currentTimeMillis();
         if (LikesBehaviorDto.LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据存入数据库
-            cacheService.zAdd(setKey1, userIdString, now);
-            cacheService.zAdd(setKey2, articleIdString, now);
+            Boolean isSuccess = cacheService.zAdd(setKey2, articleIdString, now);
+            if (isSuccess)
+                cacheService.incrBy(setKey1, 1);
         } else if (LikesBehaviorDto.DISCARD_LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据删除
-            cacheService.zRemove(setKey1, userIdString);
-            cacheService.zRemove(setKey2, articleIdString);
+            Long removeCnt = cacheService.zRemove(setKey2, articleIdString);
+            if (removeCnt > 0)
+                cacheService.incrBy(setKey1, -1 * removeCnt);
         }
 
 
@@ -70,17 +72,19 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         String articleIdString = dto.getArticleId().toString();
         String userIdString = String.valueOf(userId);
         // setKey1表示文章视角看，文章的各项数据
-        String key1 = BehaviorConstants.ARTICLE_DISLIKE + articleIdString;
+        String key1 = BehaviorConstants.ARTICLE_DISLIKE_CNT + articleIdString;
         // setKey2表示用户视角看，用户的各项数据
         String key2 = BehaviorConstants.USER_ARTICLE_DISLIKE + userIdString;
 
         long now = System.currentTimeMillis();
         if (DislikeBehaviorDto.DISLIKE_OPERATION.equals(dto.getType())) {
-            cacheService.zAdd(key1, userIdString, now);
-            cacheService.zAdd(key2, articleIdString, now);
+            Boolean isSuccess = cacheService.zAdd(key2, articleIdString, now);
+            if (isSuccess)
+                cacheService.incrBy(key1, 1);
         } else if (DislikeBehaviorDto.DISCARD_DISLIKE_OPERATION.equals(dto.getType())) {
-            cacheService.zRemove(key1, userIdString);
-            cacheService.zRemove(key2, articleIdString);
+            Long removeCnt = cacheService.zRemove(key2, articleIdString);
+            if (removeCnt > 0)
+                cacheService.incrBy(key1, -1 * removeCnt);
         }
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
@@ -102,9 +106,8 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         String userKey = BehaviorConstants.USER_ARTICLE_READ + userIdString;
 
         // 存入数据库
-        cacheService.setIfAbsent(articleKey, "0");
         cacheService.incrBy(articleKey, dto.getCount());
-        cacheService.sAdd(userKey, articleIdString);
+        cacheService.zAdd(userKey, articleIdString, System.currentTimeMillis());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
