@@ -98,6 +98,7 @@ public class ApUser implements Serializable {
     @TableField("flag")
     private Short flag;
 
+    public static final Short ROBOT = 3;
     public static final Short NORMAL_USER = 0;
     public static final Short WEMEDIA_USER = 1;
     public static final Short AUTHORITY_USER = 2;
