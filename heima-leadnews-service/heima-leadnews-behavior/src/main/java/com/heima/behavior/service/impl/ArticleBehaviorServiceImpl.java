@@ -44,6 +44,8 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         setKey1 += articleIdString;
         setKey2 += userIdString;
 
+        // 写入修改标记
+        cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
         long now = System.currentTimeMillis();
         if (LikesBehaviorDto.LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据存入数据库
@@ -76,6 +78,8 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         // setKey2表示用户视角看，用户的各项数据
         String key2 = BehaviorConstants.USER_ARTICLE_DISLIKE + userIdString;
 
+        // 写入修改标记
+        cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
         long now = System.currentTimeMillis();
         if (DislikeBehaviorDto.DISLIKE_OPERATION.equals(dto.getType())) {
             Boolean isSuccess = cacheService.zAdd(key2, articleIdString, now);
@@ -105,6 +109,8 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         // userKey表示用户阅读的所有文章集合
         String userKey = BehaviorConstants.USER_ARTICLE_READ + userIdString;
 
+        // 写入修改标记
+        cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
         // 存入数据库
         cacheService.incrBy(articleKey, dto.getCount());
         cacheService.zAdd(userKey, articleIdString, System.currentTimeMillis());

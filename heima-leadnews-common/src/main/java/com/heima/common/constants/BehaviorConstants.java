@@ -3,6 +3,11 @@ package com.heima.common.constants;
 public class BehaviorConstants {
 
     /**
+     * 已修改标记
+     */
+    public static final String HAS_WROTE = "has_wrote:";
+
+    /**
      * 点赞类redis主键
      */
     // 以下三个常量表示文章视角下的点赞数据，即文章被哪些用户点赞，文章的点赞数
