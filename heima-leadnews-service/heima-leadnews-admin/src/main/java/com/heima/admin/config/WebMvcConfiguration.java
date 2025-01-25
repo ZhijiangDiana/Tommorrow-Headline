@@ -1,6 +1,7 @@
 package com.heima.admin.config;
 
 import com.heima.admin.interceptor.AdTokenInterceptor;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @Author 嘉然今天吃向晚
  * @Date 2024/12/26-20:39:43
  */
+@ComponentScan("com.heima.apis")
 @Configuration
 public class WebMvcConfiguration implements WebMvcConfigurer {
 
