@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * @Date 2024/12/29-19:31:13
  */
 @Configuration
+@ComponentScan("com.heima.apis.behavior.fallback")
 @ComponentScan("com.heima.apis.wemedia.fallback")
 public class InitConfiguration {
 }
