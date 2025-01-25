@@ -114,6 +114,10 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         // 2.判断是否存在id
         if (dto.getId() == null) {
             // 2.1不存在id 保存文章、文章配置、文章内容
+            apArticle.setViews(0);
+            apArticle.setLikes(0);
+            apArticle.setCollection(0);
+            apArticle.setComment(0);
             // 保存文章
             save(apArticle);
             // 保存配置

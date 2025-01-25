@@ -8,4 +8,9 @@ public interface HotArticleService {
      */
     void syncArticleInfo();
 
+    /**
+     * 计算热点文章
+     */
+    void computeHotArticle();
+
 }
