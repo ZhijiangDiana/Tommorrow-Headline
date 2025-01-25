@@ -38,10 +38,6 @@ public class HotArticleServiceImpl implements HotArticleService {
     @Autowired
     private IWemediaClient wemediaClient;
 
-    private static final int DATE_BACK = 30;
-
-    private static final int CACHE_ARTICLE_CNT = 30;
-
     @Override
     public void syncArticleInfo() {
         // 1.查询所有被更改过的文章id
@@ -80,7 +76,7 @@ public class HotArticleServiceImpl implements HotArticleService {
         // 1.查询前五天的文章数据
         DateTime now = DateTime.now();
         Date to = now.withTimeAtStartOfDay().toDate();
-        Date from = now.minusDays(DATE_BACK).withTimeAtStartOfDay().toDate();
+        Date from = now.minusDays(ArticleConstants.HOT_ARTICLE_DATE_BACK).withTimeAtStartOfDay().toDate();
         List<ApArticle> apArticles = apArticleMapper.findArticleListByLast5days(from, to);
         // 2.计算文章分值
         List<HotArticleVO> hotArticleVOS = new ArrayList<>();
@@ -120,7 +116,7 @@ public class HotArticleServiceImpl implements HotArticleService {
     private void sortAndCache(String key, List<HotArticleVO> channelHotArticles) {
         List<String> sortedArticles = channelHotArticles.stream()
                 .sorted(Comparator.comparing(HotArticleVO::getScore).reversed())
-                .limit(CACHE_ARTICLE_CNT)
+                .limit(ArticleConstants.HOT_CACHE_ARTICLE_CNT)
                 .map(JSON::toJSONString)
                 .collect(Collectors.toList());
 

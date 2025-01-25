@@ -19,4 +19,9 @@ public class ArticleConstants {
     public static final Integer HOT_ARTICLE_COLLECTION_WEIGHT = 8;
 
     public static final String HOT_ARTICLE_FITST_PAGE = "hot_article_first_page:";
+
+    public static final int HOT_ARTICLE_DATE_BACK = 30;
+    public static final int HOT_CACHE_ARTICLE_CNT = 30;
+    public static final int FIRST_PAGE_ARTICLE_CNT = 20;
+    public static final double LOADMORE_HOT_ARTICLE_RATIO = 0.4;
 }

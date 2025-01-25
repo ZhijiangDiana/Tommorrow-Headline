@@ -18,6 +18,7 @@ import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.article.pojos.ApArticleConfig;
 import com.heima.model.article.pojos.ApArticleContent;
 import com.heima.model.article.vos.ArticleInfoVO;
+import com.heima.model.article.vos.HotArticleVO;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.vos.SearchArticleVo;
@@ -30,8 +31,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Description
@@ -193,5 +196,40 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         articleInfoVO.setCollectionCnt(collectCntStr == null ? 0 : Integer.parseInt(collectCntStr));
 
         return ResponseResult.okResult(articleInfoVO);
+    }
+
+    @Override
+    public ResponseResult load2(ArticleHomeDto dto, Short type, boolean firstPage) {
+        /**
+         * 规则：
+         * 1. 若为firstpage，则将redis的热门文章取回后打乱，取前x条返回
+         * 2. 若不是firstpage，则从数据库选出n条数据，再从redis中取m条数据，打乱后返回（热门数据条数的期望是nm/(n+m)）
+         */
+        List<String> hotArticleStr = cacheService.lRange(
+                ArticleConstants.HOT_ARTICLE_FITST_PAGE + dto.getTag(),
+                0, ArticleConstants.HOT_CACHE_ARTICLE_CNT);
+        Collections.shuffle(hotArticleStr);
+        if (firstPage) {
+            List<HotArticleVO> res = hotArticleStr.stream()
+                    .limit(ArticleConstants.FIRST_PAGE_ARTICLE_CNT)
+                    .map(x -> JSON.parseObject(x, HotArticleVO.class))
+                    .collect(Collectors.toList());
+
+            return ResponseResult.okResult(res);
+        } else {
+            int hotArticleCnt = (int) Math.round(dto.getSize() * ArticleConstants.LOADMORE_HOT_ARTICLE_RATIO);
+
+            List<HotArticleVO> newArticles = (List<HotArticleVO>) load(dto, type).getData();
+            List<HotArticleVO> hotArticles = hotArticleStr.stream()
+                    .distinct()
+                    .limit(hotArticleCnt)
+                    .map(x -> JSON.parseObject(x, HotArticleVO.class))
+                    .collect(Collectors.toList());
+            newArticles.addAll(hotArticles);
+            Collections.shuffle(newArticles);
+            List<HotArticleVO> res = newArticles.subList(0, Math.min(dto.getSize(), newArticles.size()));
+
+            return ResponseResult.okResult(res);
+        }
     }
 }
