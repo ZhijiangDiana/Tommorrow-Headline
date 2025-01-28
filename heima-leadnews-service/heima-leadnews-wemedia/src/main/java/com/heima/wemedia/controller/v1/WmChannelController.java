@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 
 /**
  * @Description
@@ -54,6 +55,8 @@ public class WmChannelController {
 
     @PostMapping("/save")
     public ResponseResult addChannel(HttpServletRequest request, @RequestBody WmChannel wmChannel) {
+        wmChannel.setIsDefault(true);
+        wmChannel.setCreatedTime(new Date());
         wmChannelService.save(wmChannel);
         iAdUserOperationClient.addAdUserOperation(
                 new AdUserOperaionDto(
@@ -67,6 +70,8 @@ public class WmChannelController {
 
     @PostMapping("/update")
     public ResponseResult modifyChannel(HttpServletRequest request, @RequestBody WmChannel wmChannel) {
+        wmChannel.setIsDefault(true);
+        wmChannel.setCreatedTime(new Date());
         wmChannelService.updateById(wmChannel);
         iAdUserOperationClient.addAdUserOperation(
                 new AdUserOperaionDto(
