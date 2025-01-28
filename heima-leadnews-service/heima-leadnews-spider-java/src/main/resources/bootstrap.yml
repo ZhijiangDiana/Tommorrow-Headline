@@ -1,0 +1,15 @@
+server:
+  port: 11451
+spring:
+  application:
+    name: leadnews-spider-java
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.200:8848
+      config:
+        server-addr: 192.168.1.200:8848
+        file-extension: yml
+        shared-configs:
+         - shared-seata.yaml
+         - shared-feign-fallback.yaml

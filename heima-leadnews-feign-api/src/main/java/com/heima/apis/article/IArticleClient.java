@@ -16,4 +16,7 @@ public interface IArticleClient {
 
     @PostMapping("/api/v1/article/save")
     ResponseResult saveArticle(ArticleDto dto);
+
+    @PostMapping("/api/v1/article/getByTitle")
+    ResponseResult getArticleByTitle(String title);
 }

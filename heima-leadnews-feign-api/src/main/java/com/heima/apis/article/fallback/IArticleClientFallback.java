@@ -18,4 +18,9 @@ public class IArticleClientFallback implements IArticleClient {
     public ResponseResult saveArticle(ArticleDto dto) {
         return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
     }
+
+    @Override
+    public ResponseResult getArticleByTitle(String title) {
+        return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
+    }
 }

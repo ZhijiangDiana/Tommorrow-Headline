@@ -1,8 +1,10 @@
 package com.heima.article.feign;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.heima.apis.article.IArticleClient;
 import com.heima.article.service.ApArticleService;
 import com.heima.model.article.dtos.ArticleDto;
+import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.common.dtos.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,5 +26,13 @@ public class ArticleClient implements IArticleClient {
     @PostMapping("/api/v1/article/save")
     public ResponseResult saveArticle(@RequestBody ArticleDto dto) {
         return apArticleService.saveArticle(dto);
+    }
+
+    @Override
+    @PostMapping("/api/v1/article/getByTitle")
+    public ResponseResult getArticleByTitle(String title) {
+        return ResponseResult.okResult(apArticleService.getOne(new LambdaQueryWrapper<ApArticle>()
+                .select(ApArticle::getTitle)
+                .eq(ApArticle::getTitle, title)));
     }
 }
