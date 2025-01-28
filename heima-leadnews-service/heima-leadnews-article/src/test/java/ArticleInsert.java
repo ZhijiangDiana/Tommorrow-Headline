@@ -35,9 +35,6 @@ public class ArticleInsert {
     private ApArticleMapper apArticleMapper;
 
     @Autowired
-    private ApArticleContentMapper apArticleContentMapper;
-
-    @Autowired
     private ApArticleService apArticleService;
 
     @Autowired
@@ -45,10 +42,24 @@ public class ArticleInsert {
 
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
+    private String basePath = "C:\\leadnews_workspace\\article_insert_workspace";
+
+    private class Info {
+        String searchWord = "原神纳塔";
+        int channelId = 4;
+        String channelName = "二游";
+        Long authorId = 1102L;
+        String authorName = "admin";
+    }
+
+    private Info info = new Info();
+
     @Test
     public void insertFromJson() throws IOException, ParseException {
+        basePath += File.separator + info.searchWord;
+
         InputStreamReader inputStreamReader = new InputStreamReader(
-                new FileInputStream("C:\\leadnews_workspace\\article_insert_workspace\\article_final.json"));
+                new FileInputStream(basePath + File.separator + "article_final_" + info.searchWord + ".json"));
         String jsonStr = IOUtils.toString(inputStreamReader);
         JSONArray articles = JSON.parseArray(jsonStr);
 //        System.out.println(articles.get(0).toString());
@@ -68,13 +79,13 @@ public class ArticleInsert {
             // 构造dto
             ArticleDto articleDto = new ArticleDto();
             articleDto.setTitle(article.getString("title"));
-            articleDto.setAuthorId(1102L);
-            articleDto.setAuthorName("admin");
-            articleDto.setChannelId(1);
-            articleDto.setChannelName("少女乐队");
+            articleDto.setAuthorId(info.authorId);
+            articleDto.setAuthorName(info.authorName);
+            articleDto.setChannelId(info.channelId);
+            articleDto.setChannelName(info.channelName);
             articleDto.setLayout((short) 1);
             articleDto.setImages(article.getString("img_url"));
-            articleDto.setLabels("AveMujica");
+            articleDto.setLabels(info.searchWord);
 
             JSONObject content = article.getJSONObject("content");
             articleDto.setNation(content.getString("nation"));
@@ -91,8 +102,9 @@ public class ArticleInsert {
             // 上传图片
             Integer totalImg = article.getInteger("total_img");
             // 先上传封面
-            String fileName = UUID.randomUUID().toString().replace("-", "");
-            String coverPath = "C:\\leadnews_workspace\\article_insert_workspace\\article_img\\" + id + ".jpg";
+            String fileName = UUID.randomUUID().toString().replace("-", "") + ".jpg";
+            String imgBasePath = basePath + File.separator + "article_img";
+            String coverPath = imgBasePath + File.separator + id + ".jpg";
             String url = fileStorageService.uploadImgFile("", fileName, Files.newInputStream(Paths.get(coverPath)));
             articleDto.setImages(url);
 
@@ -102,7 +114,7 @@ public class ArticleInsert {
                 Queue<String> urls = new LinkedList<>();
                 for (int j = 0; j < totalImg; j++) {
                     fileName = UUID.randomUUID().toString().replace("-", "") + ".jpg";
-                    String imgPath = "C:\\leadnews_workspace\\article_insert_workspace\\article_img\\"+ id + "_"+ j + ".jpg";
+                    String imgPath = imgBasePath + File.separator + id + "_"+ j + ".jpg";
                     String content_url = fileStorageService.uploadImgFile("", fileName, Files.newInputStream(Paths.get(imgPath)));
                     urls.offer(content_url);
                 }
