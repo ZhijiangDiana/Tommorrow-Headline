@@ -23,10 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -54,19 +51,32 @@ public class SpArticleServiceImpl implements SpArticleService {
         String jsonStr = IOUtils.toString(inputStreamReader);
         inputStreamReader.close();
         JSONArray articles = JSON.parseArray(jsonStr);
+        // 去重set
+        Set<String> distinctTitle = new HashSet<>();
 //        System.out.println(articles.get(0).toString());
         for (int i = 0; i < articles.size(); i++) {
             JSONObject article = articles.getJSONObject(i);
 
+            // 若输入中含有重复的标题，则跳过
+            boolean isUnique = distinctTitle.add(article.getString("title"));
+            if (!isUnique) {
+                log.error("index={}文章本次已插入，已跳过", i);
+                continue;
+            }
+
             // 若数据库已有相同文章，则跳过
-            ResponseResult asResp = articleClient.getArticleByTitle(article.getString("title"));
+            ApArticle apArticle = new ApArticle();
+            apArticle.setTitle(article.getString("title"));
+            ResponseResult asResp = articleClient.getArticleByTitle(apArticle);
             if (!asResp.getCode().equals(200)) {
                 log.error("index={}文章检索失败", i);
                 continue;
             }
-            ApArticle dbArticle = (ApArticle) asResp.getData();
-            if (dbArticle != null && StringUtils.isNotBlank(dbArticle.getTitle()))
+            Object dbArticle = asResp.getData();
+            if (dbArticle != null) {
+                log.error("index={}文章重复，已跳过", i);
                 continue;
+            }
 
             // 获取id
             Integer id = article.getInteger("id");

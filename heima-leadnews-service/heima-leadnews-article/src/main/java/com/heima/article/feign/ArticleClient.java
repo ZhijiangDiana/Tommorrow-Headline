@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * @Description
  * @Author 嘉然今天吃向晚
@@ -30,9 +32,10 @@ public class ArticleClient implements IArticleClient {
 
     @Override
     @PostMapping("/api/v1/article/getByTitle")
-    public ResponseResult getArticleByTitle(String title) {
-        return ResponseResult.okResult(apArticleService.getOne(new LambdaQueryWrapper<ApArticle>()
+    public ResponseResult getArticleByTitle(@RequestBody ApArticle article) {
+        List<ApArticle> list = apArticleService.list(new LambdaQueryWrapper<ApArticle>()
                 .select(ApArticle::getTitle)
-                .eq(ApArticle::getTitle, title)));
+                .eq(ApArticle::getTitle, article.getTitle()));
+        return ResponseResult.okResult(!list.isEmpty() ? list.get(0) : null);
     }
 }
