@@ -115,6 +115,7 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
         BeanUtils.copyProperties(dto, apArticle);
 
         // 2.判断是否存在id
+        apArticle.setUpdatedTime(new Date());
         if (dto.getId() == null) {
             // 2.1不存在id 保存文章、文章配置、文章内容
             apArticle.setViews(0);

@@ -20,6 +20,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.util.Date;
+
 @Component
 public class ArticleConfigListener {
 
@@ -46,9 +48,13 @@ public class ArticleConfigListener {
             apArticleConfigService.update(apArticleConfig, new LambdaQueryWrapper<ApArticleConfig>()
                     .eq(ApArticleConfig::getArticleId, apArticleConfig.getArticleId()));
 
+            // 修改文章修改时间
+            ApArticle apArticle = apArticleMapper.selectById(wmNewsEnableDto.getArticleId());
+            apArticle.setUpdatedTime(new Date());
+            apArticleMapper.updateById(apArticle);
+
             // 修改文章索引
             if (wmNewsEnableDto.getEnable().equals((short) 1)) {
-                ApArticle apArticle = apArticleMapper.selectById(wmNewsEnableDto.getArticleId());
                 ApArticleContent apArticleContent = apArticleContentMapper.selectOne(
                         new LambdaQueryWrapper<ApArticleContent>()
                         .eq(ApArticleContent::getArticleId, apArticleConfig.getArticleId()));
@@ -71,6 +77,10 @@ public class ArticleConfigListener {
             apArticleConfig.setIsDelete(true);
             apArticleConfigService.update(apArticleConfig, new LambdaUpdateWrapper<ApArticleConfig>()
                     .eq(ApArticleConfig::getArticleId, aid));
+            // 修改文章修改时间
+            ApArticle apArticle = apArticleMapper.selectById(aid);
+            apArticle.setUpdatedTime(new Date());
+            apArticleMapper.updateById(apArticle);
         }
     }
 }

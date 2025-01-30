@@ -60,6 +60,7 @@ public class HotArticleServiceImpl implements HotArticleService {
             apArticle.setViews(Integer.parseInt(reads.getOrDefault(BehaviorConstants.ARTICLE_READ_COUNT + key, "0")));
             apArticle.setLikes(Integer.parseInt(likes.getOrDefault(BehaviorConstants.ARTICLE_LIKE_CNT + key, "0")));
             apArticle.setCollection(Integer.parseInt(collects.getOrDefault(BehaviorConstants.ARTICLE_COLLECT_CNT + key, "0")));
+            apArticle.setUpdatedTime(new Date());
             apArticleMapper.updateById(apArticle);
         }
 

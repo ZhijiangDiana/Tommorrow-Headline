@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -65,7 +66,8 @@ public class ArticleFreemarkerServiceImpl implements ArticleFreemarkerService {
             String path = fileStorageService.uploadHtmlFile("", apArticle.getId() + ".html", in);
             apArticleService.update(
                     Wrappers.<ApArticle>lambdaUpdate().eq(ApArticle::getId, apArticle.getId())
-                            .set(ApArticle::getStaticUrl, path));
+                            .set(ApArticle::getStaticUrl, path)
+                            .set(ApArticle::getUpdatedTime, new Date()));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -140,4 +140,10 @@ public class ApArticle implements Serializable {
      */
     @TableField("description")
     private String description;
+
+    /**
+     * 修改时间，用于数据库同步
+     */
+    @TableField("updated_time")
+    private Date updatedTime;
 }
