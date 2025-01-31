@@ -1,9 +1,12 @@
-package com.heima.utils.common;
+package com.heima.wemedia.utils;
 
-import java.io.*;
+import org.springframework.stereotype.Component;
+
 import java.util.*;
 
+@Component
 public class ACAutomation {
+
     // 字典树的节点类
     private static class TrieNode {
         Map<Character, TrieNode> children = new HashMap<>();
@@ -13,16 +16,8 @@ public class ACAutomation {
 
     private static TrieNode root;  // 字典树的根节点
 
-    private static ACAutomation instance;
-
-    public static synchronized ACAutomation getInstance(List<String> words) {
-        if (instance == null)
-            instance = new ACAutomation(words);
-        return instance;
-    }
-
-    // 构造函数，初始化字典树并插入所有关键词
-    private ACAutomation(List<String> keywords) {
+    // 初始化字典树并插入所有关键词
+    public void reload(List<String> keywords) {
         root = new TrieNode();
 
         // 构建trie树
@@ -64,7 +59,7 @@ public class ACAutomation {
     }
 
     // 查找文本中是否包含关键词
-    public static List<String> search(String text) {
+    public List<String> search(String text) {
         List<String> foundKeywords = new ArrayList<>();
         TrieNode node = root;
         
@@ -88,42 +83,42 @@ public class ACAutomation {
         return foundKeywords;
     }
 
-    public static void main(String[] args) throws IOException {
-        // 读取敏感词库
-//        BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\14838\\Desktop\\sensitive_words.txt"));
-//        List<String> lines = new ArrayList<>();
-//        String line;
-//        while ((line = br.readLine()) != null) {
-//            lines.add(line);
+//    public static void main(String[] args) throws IOException {
+//        // 读取敏感词库
+////        BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\14838\\Desktop\\sensitive_words.txt"));
+////        List<String> lines = new ArrayList<>();
+////        String line;
+////        while ((line = br.readLine()) != null) {
+////            lines.add(line);
+////        }
+////        List<String> words = new ArrayList<>();
+////        for (String l : lines) {
+////            words.addAll(Arrays.asList(l.split(",")).stream().filter(x -> !x.isEmpty()).collect(Collectors.toList()));
+////        }
+////        words = words.stream().distinct().filter(x -> x.length() > 1).collect(Collectors.toList());
+////        BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\sensitive_words.txt"));
+////        words.stream().forEach(x -> {
+////            try {
+////                bw.write(x);
+////                bw.write(',');
+////            } catch (IOException e) {
+////                throw new RuntimeException(e);
+////            }
+////        });
+//
+//        // 输入要检查的文本（包含汉字、字母、标点符号）
+//        String text = "看奶龙就风风光光操你妈去";
+//
+//        // 创建Aho-Corasick自动机
+//        List<String> words = Arrays.asList("卧槽", "操你妈", "奶龙");
+//        ACAutomation ac = ACAutomation.getInstance(words);
+//
+//        // 查找并输出匹配的关键词
+//        List<String> foundKeywords = ac.search(text);
+//        if (foundKeywords.isEmpty()) {
+//            System.out.println("没有找到匹配的关键词");
+//        } else {
+//            System.out.println("匹配的关键词: " + foundKeywords);
 //        }
-//        List<String> words = new ArrayList<>();
-//        for (String l : lines) {
-//            words.addAll(Arrays.asList(l.split(",")).stream().filter(x -> !x.isEmpty()).collect(Collectors.toList()));
-//        }
-//        words = words.stream().distinct().filter(x -> x.length() > 1).collect(Collectors.toList());
-//        BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\sensitive_words.txt"));
-//        words.stream().forEach(x -> {
-//            try {
-//                bw.write(x);
-//                bw.write(',');
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-
-        // 输入要检查的文本（包含汉字、字母、标点符号）
-        String text = "看奶龙就风风光光操你妈去";
-
-        // 创建Aho-Corasick自动机
-        List<String> words = Arrays.asList("卧槽", "操你妈", "奶龙");
-        ACAutomation ac = ACAutomation.getInstance(words);
-
-        // 查找并输出匹配的关键词
-        List<String> foundKeywords = ac.search(text);
-        if (foundKeywords.isEmpty()) {
-            System.out.println("没有找到匹配的关键词");
-        } else {
-            System.out.println("匹配的关键词: " + foundKeywords);
-        }
-    }
+//    }
 }

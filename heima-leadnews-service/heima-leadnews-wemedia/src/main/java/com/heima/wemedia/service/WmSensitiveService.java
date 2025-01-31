@@ -34,4 +34,10 @@ public interface WmSensitiveService extends IService<WmSensitive> {
      * @return
      */
     ResponseResult updateSensitive(WmSensitive wmSensitive);
+
+    /**
+     * 重启AC自动机
+     * @return
+     */
+    void reloadAcAutomation();
 }

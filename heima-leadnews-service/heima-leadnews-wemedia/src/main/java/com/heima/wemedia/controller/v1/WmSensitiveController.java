@@ -4,6 +4,7 @@ import com.heima.apis.admin.IAdUserOperationClient;
 import com.heima.model.admin.dtos.AdUserOperaionDto;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AdminOperationEnum;
+import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.wemedia.dtos.WmSensitiveDto;
 import com.heima.model.wemedia.pojos.WmSensitive;
 import com.heima.wemedia.service.WmSensitiveService;
@@ -58,5 +59,11 @@ public class WmSensitiveController {
                 AdminOperationEnum.MODIFY_SENSITIVES
         ));
         return res;
+    }
+
+    @PostMapping("/reload")
+    public ResponseResult reloadAcAutomation() {
+        wmSensitiveService.reloadAcAutomation();
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }

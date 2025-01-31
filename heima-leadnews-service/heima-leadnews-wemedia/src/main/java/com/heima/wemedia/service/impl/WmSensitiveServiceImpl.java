@@ -12,13 +12,24 @@ import com.heima.model.wemedia.pojos.WmSensitive;
 import com.heima.utils.thread.ThreadLocalUtil;
 import com.heima.wemedia.mapper.WmSensitiveMapper;
 import com.heima.wemedia.service.WmSensitiveService;
+import com.heima.wemedia.utils.ACAutomation;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WmSensitiveServiceImpl extends ServiceImpl<WmSensitiveMapper, WmSensitive> implements WmSensitiveService {
+
+    @Autowired
+    private ACAutomation acAutomation;
 
     @Override
     public ResponseResult deleteSensitive(Integer id) {
@@ -58,5 +69,18 @@ public class WmSensitiveServiceImpl extends ServiceImpl<WmSensitiveMapper, WmSen
         updateById(wmSensitive);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Async
+    @PostConstruct
+    @Override
+    public void reloadAcAutomation() {
+        List<String> sensitives = list(new LambdaQueryWrapper<WmSensitive>()
+                .select(WmSensitive::getSensitives))
+                .stream()
+                .map(WmSensitive::getSensitives)
+                .collect(Collectors.toList());
+        acAutomation.reload(sensitives);
+        log.info(">>>>>>>>>> 重启AC自动机完成");
     }
 }

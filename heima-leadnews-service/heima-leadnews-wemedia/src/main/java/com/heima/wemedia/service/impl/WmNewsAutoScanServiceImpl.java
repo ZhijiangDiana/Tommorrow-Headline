@@ -8,29 +8,19 @@ import com.heima.common.aliyun.ModerationResult;
 import com.heima.common.aliyun.TextModerationService;
 import com.heima.common.exception.CustomException;
 import com.heima.file.service.FileStorageService;
-import com.heima.model.article.dtos.ArticleDto;
-import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
-import com.heima.model.wemedia.pojos.WmChannel;
 import com.heima.model.wemedia.pojos.WmNews;
 import com.heima.model.wemedia.pojos.WmSensitive;
-import com.heima.model.wemedia.pojos.WmUser;
-import com.heima.utils.common.ACAutomation;
-import com.heima.wemedia.mapper.WmChannelMapper;
+import com.heima.wemedia.utils.ACAutomation;
 import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmSensitiveMapper;
-import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAddArticleService;
 import com.heima.wemedia.service.WmNewsAutoScanService;
-import com.heima.wemedia.service.WmNewsTaskService;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,7 +52,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     private IArticleClient iArticleClient;
 
     @Autowired
-    private WmSensitiveMapper wmSensitiveMapper;
+    private ACAutomation acAutomation;
 
     /**
      * 自媒体文章申鹤
@@ -101,15 +91,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
 
             // TODO 调用python的ocr微服务，将图片的文字转为字符串加入敏感词检测
             // 审核自管理的敏感词过滤
-            // TODO 将敏感词作为一个业务调用
-            List<String> sensitives = wmSensitiveMapper
-                    .selectList(new LambdaQueryWrapper<WmSensitive>()
-                            .select(WmSensitive::getSensitives))
-                    .stream()
-                    .map(WmSensitive::getSensitives)
-                    .collect(Collectors.toList());
-            ACAutomation.getInstance(sensitives);
-            List<String> illegalWords = ACAutomation.search(textToScan);
+            List<String> illegalWords = acAutomation.search(textToScan);
             if (!illegalWords.isEmpty()) {
                 // 敏感词审核不通过
                 wmNews.setStatus(WmNews.Status.FAIL.getCode());
