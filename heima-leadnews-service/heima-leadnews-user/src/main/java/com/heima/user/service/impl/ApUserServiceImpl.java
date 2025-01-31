@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heima.common.constants.ApUserConstants;
+import com.heima.common.jwt.AppJwtUtil;
 import com.heima.common.redis.CacheService;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
@@ -13,7 +14,6 @@ import com.heima.model.user.dtos.RegisterDto;
 import com.heima.model.user.pojos.ApUser;
 import com.heima.user.mapper.ApUserMapper;
 import com.heima.user.service.ApUserService;
-import com.heima.utils.common.AppJwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +35,9 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private AppJwtUtil appJwtUtil;
 
     private static final long CODE_VALID_MINUTES = 1; //30;
 
@@ -71,7 +74,7 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
                 return ResponseResult.errorResult(AppHttpCodeEnum.LOGIN_PASSWORD_ERROR);
 
             // 1.3 返回数据 jwt
-            String token = AppJwtUtil.getToken(dbUser.getId().longValue());
+            String token = appJwtUtil.getToken(dbUser.getId().longValue());
             Map<String, Object> map = new HashMap<>();
             map.put("token", token);
             dbUser.setSalt("");
@@ -81,7 +84,7 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
         } else {
             // 2. 游客登录
             Map<String, Object> map = new HashMap<>();
-            map.put("token", AppJwtUtil.getToken(0L));
+            map.put("token", appJwtUtil.getToken(0L));
             return ResponseResult.okResult(map);
         }
     }
@@ -106,7 +109,7 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
             return ResponseResult.errorResult(AppHttpCodeEnum.USER_IS_BANNED);
 
         // 返回数据 jwt
-        String token = AppJwtUtil.getToken(dbUser.getId().longValue());
+        String token = appJwtUtil.getToken(dbUser.getId().longValue());
         Map<String, Object> map = new HashMap<>();
         map.put("token", token);
         dbUser.setSalt("");

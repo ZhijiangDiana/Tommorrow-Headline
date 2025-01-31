@@ -6,12 +6,12 @@ import com.heima.admin.mapper.AdUserMapper;
 import com.heima.admin.service.AdUserLoginService;
 import com.heima.admin.service.AdUserService;
 import com.heima.common.baidu.AddressService;
+import com.heima.common.jwt.AppJwtUtil;
 import com.heima.model.admin.dtos.AddressDto;
 import com.heima.model.admin.dtos.LoginDto;
 import com.heima.model.admin.pojos.AdUser;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
-import com.heima.utils.common.AppJwtUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +33,9 @@ public class AdUserServiceImpl extends ServiceImpl<AdUserMapper, AdUser> impleme
 
     @Autowired
     private AdUserLoginService adUserLoginService;
+
+    @Autowired
+    private AppJwtUtil appJwtUtil;
 
     @Override
     @Transactional
@@ -66,7 +69,7 @@ public class AdUserServiceImpl extends ServiceImpl<AdUserMapper, AdUser> impleme
         }
 
         // 1.3 返回数据 jwt
-        String token = AppJwtUtil.getToken(dbUser.getId().longValue());
+        String token = appJwtUtil.getToken(dbUser.getId().longValue());
         Map<String, Object> map = new HashMap<>();
         map.put("token", token);
         dbUser.setSalt("");

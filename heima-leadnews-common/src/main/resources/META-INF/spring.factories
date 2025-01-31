@@ -7,4 +7,5 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.heima.common.redis.CacheService,\
   com.heima.common.redis.PipelineService,\
   com.heima.common.baidu.AddressService,\
-  com.heima.common.jackson.JacksonConfig
+  com.heima.common.jackson.JacksonConfig,\
+  com.heima.common.jwt.AppJwtUtil

@@ -2,13 +2,13 @@ package com.heima.wemedia.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heima.common.jwt.AppJwtUtil;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.user.dtos.LoginDto;
 import com.heima.model.user.pojos.ApUser;
 import com.heima.model.wemedia.dtos.WmLoginDto;
 import com.heima.model.wemedia.pojos.WmUser;
-import com.heima.utils.common.AppJwtUtil;
 import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmUserService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +28,9 @@ import java.util.Map;
  */
 @Service
 public class WmUserServiceImpl extends ServiceImpl<WmUserMapper, WmUser> implements WmUserService {
+
+    @Autowired
+    private AppJwtUtil appJwtUtil;
 
     /**
      * app端登录功能
@@ -57,7 +60,7 @@ public class WmUserServiceImpl extends ServiceImpl<WmUserMapper, WmUser> impleme
             return ResponseResult.errorResult(AppHttpCodeEnum.LOGIN_PASSWORD_ERROR);
 
         // 1.3 返回数据 jwt
-        String token = AppJwtUtil.getToken(dbUser.getId().longValue());
+        String token = appJwtUtil.getToken(dbUser.getId().longValue());
         Map<String, Object> map = new HashMap<>();
         map.put("token", token);
         dbUser.setSalt("");

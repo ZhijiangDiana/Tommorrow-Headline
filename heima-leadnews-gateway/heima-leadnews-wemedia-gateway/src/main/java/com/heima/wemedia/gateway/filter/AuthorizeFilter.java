@@ -5,6 +5,7 @@ import com.heima.wemedia.gateway.util.AppJwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -18,6 +19,10 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 public class AuthorizeFilter implements Ordered, GlobalFilter {
+
+    @Autowired
+    private AppJwtUtil appJwtUtil;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         //1.获取request和response对象
@@ -41,9 +46,9 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
 
         //5.判断token是否有效
         try {
-            Claims claimsBody = AppJwtUtil.getClaimsBody(token);
+            Claims claimsBody = appJwtUtil.getClaimsBody(token);
             //是否是过期
-            int result = AppJwtUtil.verifyToken(claimsBody);
+            int result = appJwtUtil.verifyToken(claimsBody);
             if(result == 1 || result  == 2){
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
