@@ -11,9 +11,11 @@ import com.heima.wemedia.mapper.WmNewsMapper;
 import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAddArticleService;
 import com.heima.wemedia.service.WmNewsTaskService;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +40,8 @@ public class WmNewsAddArticleServiceImpl implements WmNewsAddArticleService {
     @Autowired
     private WmNewsTaskService wmNewsTaskService;
 
+    @GlobalTransactional
     @Override
-    @Transactional
     public void autoSaveWmNews(WmNews wmNews) {
         ArticleDto articleDto = new ArticleDto();
         BeanUtils.copyProperties(wmNews, articleDto);
@@ -75,7 +77,8 @@ public class WmNewsAddArticleServiceImpl implements WmNewsAddArticleService {
             wmNews.setStatus(WmNews.Status.PUBLISHED.getCode());
         }
         wmNews.setReason("审核成功");
-        wmNews.setArticleId((Long) responseResult.getData());
+        String articleIdStr = (String) responseResult.getData();
+        wmNews.setArticleId(Long.parseLong(articleIdStr));
         wmNewsMapper.updateById(wmNews);
     }
 }

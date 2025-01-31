@@ -6,6 +6,7 @@ import com.heima.apis.article.IArticleClient;
 import com.heima.common.aliyun.ImageModerationService;
 import com.heima.common.aliyun.ModerationResult;
 import com.heima.common.aliyun.TextModerationService;
+import com.heima.common.constants.WmNewsMessageConstants;
 import com.heima.common.exception.CustomException;
 import com.heima.file.service.FileStorageService;
 import com.heima.model.common.enums.AppHttpCodeEnum;
@@ -19,6 +20,7 @@ import com.heima.wemedia.service.WmNewsAutoScanService;
 import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +56,9 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
     @Autowired
     private ACAutomation acAutomation;
 
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
     /**
      * 自媒体文章申鹤
      *
@@ -62,7 +67,6 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
 
     @Async  // 异步方法
     @Override
-    @GlobalTransactional  // TODO 当前为XA模式，需要改为非锁表的模式
     public void autoScanWmNews(Integer id) {
         // 1.查询自媒体文章
         WmNews wmNews = wmNewsMapper.selectById(id);
@@ -149,7 +153,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
             // 4.根据审核结果进行不同处理
             if (flag == 0) {
                 // 申鹤成功，保存app端的相关文章数据
-                wmNewsAddArticleService.autoSaveWmNews(wmNews);
+                kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_SAVE_TOPIC, JSON.toJSONString(wmNews));
             } else if (flag == 1) {
                 // 审核失败，需要人工审核
                 wmNews.setStatus(WmNews.Status.ADMIN_AUTH.getCode());
