@@ -80,6 +80,11 @@ public class ApUserRealname implements Serializable {
     @TableField("status")
     private Short status;
 
+    public static short CREATING = 0;
+    public static short NEED_VERIFY = 1;
+    public static short VERIFY_FAILED = 2;
+    public static short VERIFY_SUCCESS = 9;
+
     /**
      * 拒绝原因
      */
