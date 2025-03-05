@@ -161,6 +161,7 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
         apUser.setSex(ApUser.UNKNOWN);
         apUser.setIdentityAuthentication(false);
         apUser.setFlag(ApUser.NORMAL_USER);
+        apUser.setDescription("这个人很懒，什么也没留下");
         apUser.setStatus(false);
         apUser.setImage(readPath + defaultUserImage);
         apUser.setCreatedTime(new Date());

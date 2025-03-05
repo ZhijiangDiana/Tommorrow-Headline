@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/user")
-public class ApUserInfoController {
+public class ApUserCommonController {
 
     @Autowired
     private ApUserCommonService apUserCommonService;
@@ -17,5 +17,23 @@ public class ApUserInfoController {
     @GetMapping("/info")
     public ResponseResult getUserInfo() {
         return apUserCommonService.getUserInfo();
+    }
+
+    /**
+     * 用apId查找粉丝列表
+     * @return
+     */
+    @GetMapping("/fans")
+    public ResponseResult getFans() {
+        return apUserCommonService.getFansList();
+    }
+
+    /**
+     * 用apId查找关注列表
+     * @return
+     */
+    @GetMapping("/following")
+    public ResponseResult getFollowing() {
+        return apUserCommonService.getFollowingList();
     }
 }

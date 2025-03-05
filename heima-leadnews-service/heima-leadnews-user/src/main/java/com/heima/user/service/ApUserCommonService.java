@@ -10,4 +10,16 @@ public interface ApUserCommonService {
      * @return
      */
     ResponseResult getUserInfo();
+
+    /**
+     * 获取关注列表
+     * @return
+     */
+    ResponseResult getFollowingList();
+
+    /**
+     * 获取粉丝列表
+     * @return
+     */
+    ResponseResult getFansList();
 }

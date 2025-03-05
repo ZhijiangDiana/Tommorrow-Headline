@@ -29,6 +29,12 @@ public class ApUser implements Serializable {
     private Integer id;
 
     /**
+     * 自媒体id
+     */
+    @TableField("wm_user_id")
+    private Integer wmUserId;
+
+    /**
      * 密码、通信等加密盐
      */
     @TableField("salt")
@@ -57,6 +63,12 @@ public class ApUser implements Serializable {
      */
     @TableField("image")
     private String image;
+
+    /**
+     * 个人简介
+     */
+    @TableField("description")
+    private String description;
 
     /**
      * 0 男
