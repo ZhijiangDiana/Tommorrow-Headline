@@ -113,6 +113,7 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
         // 存入数据库
         cacheService.incrBy(articleKey, dto.getCount());
+        cacheService.zRemove(userKey, articleIdString);
         cacheService.zAdd(userKey, articleIdString, System.currentTimeMillis());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);

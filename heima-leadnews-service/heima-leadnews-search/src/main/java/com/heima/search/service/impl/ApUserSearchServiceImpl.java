@@ -64,7 +64,7 @@ public class ApUserSearchServiceImpl implements ApUserSearchService {
         List<ApUserSearch> searchHistory = mongoTemplate.find(
                 Query.query(Criteria
                         .where("userId").is(userId))
-                        .with(Sort.by(Sort.Direction.DESC, "createTime")), ApUserSearch.class);
+                        .with(Sort.by(Sort.Direction.DESC, "createdTime")), ApUserSearch.class);
 
         return ResponseResult.okResult(searchHistory);
     }
