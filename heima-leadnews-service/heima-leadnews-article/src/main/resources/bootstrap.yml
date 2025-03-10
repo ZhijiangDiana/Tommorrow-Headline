@@ -13,6 +13,7 @@ spring:
         shared-configs:
          - shared-seata.yaml
          - shared-feign-fallback.yaml
+         - shared-sentinel.yaml
 mybatis-plus:
   global-config:
     datacenter-id: 1
