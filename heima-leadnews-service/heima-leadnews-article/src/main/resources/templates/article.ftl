@@ -8,7 +8,7 @@
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
     <title>黑马头条</title>
     <!-- 引入样式文件 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vant@2.12.20/lib/index.css">
+    <link rel="stylesheet" href="../../../plugins/css/vant/index.css">
     <!-- 页面样式 -->
     <link rel="stylesheet" href="../../../plugins/css/index.css">
 </head>
@@ -65,7 +65,7 @@
                   @load="onLoadArticleComments">
             <van-row id="#comment-view" type="flex" class="article-comment" v-for="(item, index) in comments" :key="index">
                 <van-col span="3">
-                    <van-image round src="https://p3.pstatp.com/thumb/1480/7186611868" class="article-avatar"></van-image>
+                    <van-image round :src="item.image" class="article-avatar"></van-image>
                 </van-col>
                 <van-col span="21">
                     <van-row type="flex" align="center" justify="space-between">
@@ -85,7 +85,8 @@
                             {{ item.createdTime | timestampToDateTime }}
                         </van-col>
                         <van-col span="3">
-                            <van-button round size="normal" v-html="item.reply" @click="showCommentRepliesPopup(item.id)">回复 {{
+                            <van-button round size="normal" class="reply-button"
+                                        v-html="item.reply" @click="showCommentRepliesPopup(item.id)">回复 {{
                                 item.reply || '' }}
                             </van-button>
                         </van-col>
@@ -116,15 +117,14 @@
     </van-row>
 
     <!-- 评论Popup 弹出层 -->
-    <van-popup v-model="showPopup" closeable position="bottom"
-               :style="{ width: '750px', height: '60%', left: '50%', 'margin-left': '-375px' }">
+    <van-popup v-model="showPopup" closeable position="bottom" class="popup-page">
         <!-- 评论回复列表 -->
         <van-list v-model="commentRepliesLoading" :finished="commentRepliesFinished" finished-text="没有更多了"
                   @load="onLoadCommentReplies">
             <van-row id="#comment-reply-view" type="flex" class="article-comment-reply"
                      v-for="(item, index) in commentReplies" :key="index">
                 <van-col span="3">
-                    <van-image round src="https://p3.pstatp.com/thumb/1480/7186611868" class="article-avatar"></van-image>
+                    <van-image round :src="item.image" class="article-avatar"></van-image>
                 </van-col>
                 <van-col span="21">
                     <van-row type="flex" align="center" justify="space-between">
@@ -171,9 +171,9 @@
 </div>
 
 <!-- 引入 Vue 和 Vant 的 JS 文件 -->
-<script src=" https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js">
+<script src="../../../plugins/js/vue.min.js">
 </script>
-<script src="https://cdn.jsdelivr.net/npm/vant@2.12.20/lib/vant.min.js"></script>
+<script src="../../../plugins/js/vant.min.js"></script>
 <!-- 引入 Axios 的 JS 文件 -->
 <#--<script src="https://unpkg.com/axios/dist/axios.min.js"></script>-->
 <script src="../../../plugins/js/axios.min.js"></script>

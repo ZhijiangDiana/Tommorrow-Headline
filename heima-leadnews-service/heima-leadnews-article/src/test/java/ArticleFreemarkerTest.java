@@ -82,6 +82,9 @@ public class ArticleFreemarkerTest {
         }
     }
 
+    /**
+     * 重新加载全部静态页面
+     */
     @Test
     public void reloadAllHtml() {
         List<ApArticle> apArticles = apArticleMapper.selectList(Wrappers.<ApArticle>lambdaQuery());
@@ -92,5 +95,22 @@ public class ArticleFreemarkerTest {
                             .eq(ApArticleContent::getArticleId, apArticle.getId().toString() + "L"));
             articleFreemarkerService.buildArticleToMinio(apArticle, content.getContent());
         }
+    }
+
+    /**
+     * 重新加载单个静态页面
+     */
+    @Test
+    public void reloadOneHtml() {
+        Long articleId = 1881068426139668481L;
+        ApArticleContent content = apArticleContentMapper.selectOne(
+                Wrappers.<ApArticleContent>lambdaQuery()
+                        .eq(ApArticleContent::getArticleId, articleId + "L"));
+        ApArticle apArticle = apArticleMapper.selectById(articleId);
+        if (apArticle == null || content == null) {
+            log.error("失败，不存在id为{}的文章", articleId);
+            return;
+        }
+        articleFreemarkerService.buildArticleToMinio(apArticle, content.getContent());
     }
 }
