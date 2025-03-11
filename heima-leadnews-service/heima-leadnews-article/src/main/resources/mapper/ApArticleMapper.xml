@@ -63,4 +63,26 @@
         </where>
     </select>
 
+    <select id="queryLikesAndConllections" resultType="java.util.Map">
+        SELECT sum(aa.likes) likes, sum(aa.collection) collections, count(aa.id) newsCount FROM ap_article aa, ap_article_config aac WHERE aa.id = aac.article_id AND aac.is_delete != 1 AND aac.is_down != 1 AND aa.author_id = #{wmUserId} AND aa.publish_time
+<![CDATA[ >= ]]>
+#{beginDate} AND aa.publish_time
+<![CDATA[ < ]]>
+#{endDate}
+    </select>
+    <select id="findNewsComments" parameterType="com.heima.model.wemedia.dtos.StatisticsDto" resultType="com.heima.model.article.vos.ArticleCommnetVo">
+        SELECT aa.id, aa.title, aa.comment comments, aac.is_comment isComment,aa.publish_time publishTime FROM ap_article aa, ap_article_config aac WHERE aa.id = aac.article_id AND aa.author_id = #{dto.wmUserId} AND aa.publish_time
+<![CDATA[ >= ]]>
+#{dto.beginDate} AND aa.publish_time
+<![CDATA[ < ]]>
+#{dto.endDate} order by aa.publish_time limit #{dto.page},#{dto.size}
+    </select>
+    <select id="findNewsCommentsCount" parameterType="com.heima.model.wemedia.dtos.StatisticsDto" resultType="int">
+        SELECT count(1) FROM ap_article aa, ap_article_config aac WHERE aa.id = aac.article_id AND aa.author_id = #{dto.wmUserId} AND aa.publish_time
+<![CDATA[ >= ]]>
+#{dto.beginDate} AND aa.publish_time
+<![CDATA[ < ]]>
+#{dto.endDate}
+    </select>
+
 </mapper>

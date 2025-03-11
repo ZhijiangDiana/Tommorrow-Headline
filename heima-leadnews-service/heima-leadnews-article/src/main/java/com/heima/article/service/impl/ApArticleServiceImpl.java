@@ -2,6 +2,9 @@ package com.heima.article.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heima.article.mapper.ApArticleConfigMapper;
 import com.heima.article.mapper.ApArticleContentMapper;
@@ -11,17 +14,22 @@ import com.heima.article.service.ArticleFreemarkerService;
 import com.heima.common.constants.ArticleConstants;
 import com.heima.common.constants.BehaviorConstants;
 import com.heima.common.redis.CacheService;
+import com.heima.model.article.dtos.ArticleCommentDto;
 import com.heima.model.article.dtos.ArticleDto;
 import com.heima.model.article.dtos.ArticleHomeDto;
 import com.heima.model.article.dtos.ArticleInfoDto;
 import com.heima.model.article.pojos.ApArticle;
 import com.heima.model.article.pojos.ApArticleConfig;
 import com.heima.model.article.pojos.ApArticleContent;
+import com.heima.model.article.vos.ArticleCommnetVo;
 import com.heima.model.article.vos.ArticleInfoVO;
 import com.heima.model.article.vos.HotArticleVO;
+import com.heima.model.common.dtos.PageResponseResult;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.search.vos.SearchArticleVo;
+import com.heima.model.wemedia.dtos.StatisticsDto;
+import com.heima.utils.common.DateUtils;
 import com.heima.utils.thread.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -232,5 +241,66 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
 
             return ResponseResult.okResult(res);
         }
+    }
+
+    /**
+     * 图文统计统计
+     * @param wmUserId
+     * @param beginDate
+     * @param endDate
+     * @return
+     */
+    @Override
+    public ResponseResult queryLikesAndConllections(Integer wmUserId, Date beginDate, Date endDate) {
+        Map map = apArticleMapper.queryLikesAndConllections(wmUserId, beginDate, endDate);
+        return ResponseResult.okResult(map);
+    }
+
+    /**
+     * 分页查询 图文统计
+     * @param dto
+     * @return
+     */
+    @Override
+    public PageResponseResult newPage(StatisticsDto dto) {
+
+        //类型转换
+        Date beginDate = DateUtils.stringToDate(dto.getBeginDate());
+        Date endDate = DateUtils.stringToDate(dto.getEndDate());
+        //检查参数
+        dto.checkParam();
+        //分页查询
+        IPage page = new Page(dto.getPage(), dto.getSize());
+        LambdaQueryWrapper<ApArticle> lambdaQueryWrapper = Wrappers.<ApArticle>lambdaQuery()
+                .eq(ApArticle::getAuthorId, dto.getWmUserId())
+                .between(ApArticle::getPublishTime,beginDate, endDate)
+                .select(ApArticle::getId,ApArticle::getTitle,ApArticle::getLikes,ApArticle::getCollection,ApArticle::getComment,ApArticle::getViews);
+
+        lambdaQueryWrapper.orderByDesc(ApArticle::getPublishTime);
+
+        page = page(page,lambdaQueryWrapper);
+
+        PageResponseResult responseResult = new PageResponseResult(dto.getPage(),dto.getSize(),(int)page.getTotal());
+        responseResult.setData(page.getRecords());
+
+        return responseResult;
+    }
+
+    /**
+     * 查询文章评论统计
+     * @param dto
+     * @return
+     */
+    @Override
+    public PageResponseResult findNewsComments(ArticleCommentDto dto) {
+
+        Integer currentPage = dto.getPage();
+        dto.setPage((dto.getPage()-1)*dto.getSize());
+        List<ArticleCommnetVo> list = apArticleMapper.findNewsComments(dto);
+        int count = apArticleMapper.findNewsCommentsCount(dto);
+
+        PageResponseResult responseResult = new PageResponseResult(currentPage,dto.getSize(),count);
+        responseResult.setData(list);
+        return responseResult;
     }
 }

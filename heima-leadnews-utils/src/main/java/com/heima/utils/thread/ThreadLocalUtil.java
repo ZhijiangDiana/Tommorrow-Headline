@@ -14,7 +14,14 @@ public class ThreadLocalUtil {
     }
 
     public static Integer getUserId() {
-        return (Integer) THREAD_LOCAL.get();
+        Object id = THREAD_LOCAL.get();
+        if (id == null)
+            return null;
+        else if (id instanceof Integer)
+            return (Integer) id;
+        else if (id instanceof String)
+            return Integer.parseInt((String) id);
+        return null;
     }
 
     public static void rmUserId() {
