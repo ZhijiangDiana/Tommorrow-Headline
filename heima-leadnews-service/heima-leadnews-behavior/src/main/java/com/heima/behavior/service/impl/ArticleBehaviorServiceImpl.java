@@ -6,17 +6,26 @@ import com.heima.common.redis.CacheService;
 import com.heima.model.behavior.dtos.DislikeBehaviorDto;
 import com.heima.model.behavior.dtos.LikesBehaviorDto;
 import com.heima.model.behavior.dtos.ReadBehaviorDto;
+import com.heima.model.behavior.pojos.ApArticleBehavior;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     public ResponseResult like(LikesBehaviorDto dto) {
@@ -46,17 +55,45 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
         // 写入修改标记
         cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
-        long now = System.currentTimeMillis();
+
+        // 组装实体
+        Date now = new Date();
+        ApArticleBehavior apArticleBehavior = new ApArticleBehavior();
+        apArticleBehavior.setUserId(userId);
+        apArticleBehavior.setArticleId(dto.getArticleId());
+        apArticleBehavior.setType(dto.getType());
+
+        // 点赞或取消点赞
         if (LikesBehaviorDto.LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据存入数据库
-            Boolean isSuccess = cacheService.zAdd(setKey2, articleIdString, now);
-            if (isSuccess)
+            Boolean isSuccess = cacheService.zAdd(setKey2, articleIdString, now.getTime());
+            if (isSuccess) {
+                // 执行点赞操作
                 cacheService.incrBy(setKey1, 1);
+
+                // 组装实体类
+                apArticleBehavior.setBehavior(ApArticleBehavior.LIKE_ARTICLE_BEHAVIOR);
+                apArticleBehavior.setCreatedTime(now);
+                apArticleBehavior.setUpdatedTime(now);
+
+                // 将记录存入数据库
+                mongoTemplate.save(apArticleBehavior);
+            }
         } else if (LikesBehaviorDto.DISCARD_LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据删除
             Long removeCnt = cacheService.zRemove(setKey2, articleIdString);
-            if (removeCnt > 0)
+            if (removeCnt > 0) {
+                // 执行取消点赞操作
                 cacheService.incrBy(setKey1, -1 * removeCnt);
+
+                // 将点赞记录移除
+                Query query = Query.query(Criteria
+                        .where("articleId").is(dto.getArticleId())
+                        .and("userId").is(userId)
+                        .and("behavior").is(ApArticleBehavior.LIKE_ARTICLE_BEHAVIOR)
+                        .and("type").is(dto.getType()));
+                mongoTemplate.remove(query, ApArticleBehavior.class);
+            }
         }
 
 
@@ -80,15 +117,41 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
         // 写入修改标记
         cacheService.set(BehaviorConstants.HAS_WROTE + articleIdString, articleIdString);
-        long now = System.currentTimeMillis();
+
+        // 组装实体
+        Date now = new Date();
+        ApArticleBehavior apArticleBehavior = new ApArticleBehavior();
+        apArticleBehavior.setUserId(userId);
+        apArticleBehavior.setArticleId(dto.getArticleId());
+        apArticleBehavior.setType(dto.getType());
+
         if (DislikeBehaviorDto.DISLIKE_OPERATION.equals(dto.getType())) {
-            Boolean isSuccess = cacheService.zAdd(key2, articleIdString, now);
-            if (isSuccess)
+            Boolean isSuccess = cacheService.zAdd(key2, articleIdString, now.getTime());
+            if (isSuccess) {
+                // 执行不喜欢操作
                 cacheService.incrBy(key1, 1);
+
+                // 组装实体类
+                apArticleBehavior.setBehavior(ApArticleBehavior.DISLIKE_ARTICLE_BEHAVIOR);
+                apArticleBehavior.setCreatedTime(now);
+                apArticleBehavior.setUpdatedTime(now);
+
+                // 将记录存入数据库
+                mongoTemplate.save(apArticleBehavior);
+            }
         } else if (DislikeBehaviorDto.DISCARD_DISLIKE_OPERATION.equals(dto.getType())) {
             Long removeCnt = cacheService.zRemove(key2, articleIdString);
-            if (removeCnt > 0)
+            if (removeCnt > 0) {
+                // 执行取消不喜欢操作
                 cacheService.incrBy(key1, -1 * removeCnt);
+
+                // 将不喜欢记录移除
+                Query query = Query.query(Criteria
+                        .where("articleId").is(dto.getArticleId())
+                        .and("userId").is(userId)
+                        .and("behavior").is(ApArticleBehavior.DISLIKE_ARTICLE_BEHAVIOR));
+                mongoTemplate.remove(query, ApArticleBehavior.class);
+            }
         }
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
@@ -115,6 +178,18 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         cacheService.incrBy(articleKey, dto.getCount());
         cacheService.zRemove(userKey, articleIdString);
         cacheService.zAdd(userKey, articleIdString, System.currentTimeMillis());
+
+        // 组装实体
+        Date now = new Date();
+        ApArticleBehavior apArticleBehavior = new ApArticleBehavior();
+        apArticleBehavior.setUserId(userId);
+        apArticleBehavior.setArticleId(dto.getArticleId());
+        apArticleBehavior.setBehavior(ApArticleBehavior.READ_ARTICLE_BEHAVIOR);
+        apArticleBehavior.setCreatedTime(now);
+        apArticleBehavior.setUpdatedTime(now);
+
+        // 将记录存入数据库
+        mongoTemplate.save(apArticleBehavior);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
