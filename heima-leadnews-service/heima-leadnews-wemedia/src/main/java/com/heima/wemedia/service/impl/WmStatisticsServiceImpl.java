@@ -1,5 +1,6 @@
 package com.heima.wemedia.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -79,7 +81,7 @@ public class WmStatisticsServiceImpl implements WmStatisticsService {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
-        log.info("articleIds: {}", articleIds);
+//        log.info("articleIds: {}", articleIds);
         
         // 获取原始数据
         Integer newsPublishedCnt = wmNewsMapper.selectCount(new LambdaQueryWrapper<WmNews>()
@@ -110,8 +112,24 @@ public class WmStatisticsServiceImpl implements WmStatisticsService {
         return ResponseResult.okResult(wmStatisticsOverallVO);
     }
 
+    private static final String WmStatisticNewsPageCachePREFIX = "WM_NEWS_STATISTIC_PAGE_CACHE";
+    private static final Long PAGE_CACHE_EXPIRE_MINUTES = 30L;
+
     @Override
     public ResponseResult newsPage(WmStatisticsDto dto) {
+        // 登录验证
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+
+        // 使用cache
+        String key =  WmStatisticNewsPageCachePREFIX + ":" + userId + ":" + dto.getPage() + ":" + dto.getSize();
+        String cache = cacheService.get(key);
+        if (cache != null) {
+            log.info("{}缓存命中", key);
+            return JSON.parseObject(cache, ResponseResult.class);
+        }
+
         // 校验请求参数
         if (dto.getBeginDate() == null)
             dto.setBeginDate(0L);
@@ -120,12 +138,7 @@ public class WmStatisticsServiceImpl implements WmStatisticsService {
 
         Date from = new Date(dto.getBeginDate());
         Date to = new Date(dto.getEndDate());
-        log.info("统计时间段：{} ~ {}", sdf.format(from), sdf.format(to));
-
-        // 登录验证
-        Integer userId = ThreadLocalUtil.getUserId();
-        if (userId == null)
-            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+//        log.info("统计时间段：{} ~ {}", sdf.format(from), sdf.format(to));
 
         // 整页查询
         IPage<WmNews> page = new Page<>(dto.getPage(), dto.getSize());
@@ -180,8 +193,14 @@ public class WmStatisticsServiceImpl implements WmStatisticsService {
             record.add(resVO);
         }
 
+        // 组装返回数据
         ResponseResult res = new PageResponseResult(dto.getPage(), dto.getSize(), (int) page.getTotal());
         res.setData(record);
+
+        // 将结果存入cache
+        log.info("{}缓存未命中", key);
+        cacheService.setEx(key, JSON.toJSONString(res), PAGE_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+
         return res;
     }
 
