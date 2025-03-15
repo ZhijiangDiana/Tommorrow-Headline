@@ -31,6 +31,8 @@ public class ApArticleBehavior {
      * 1 点赞文章
      * 2 收藏文章
      * 3 不喜欢文章
+     * 4 转发文章
+     * 5 评论文章
      */
     private Short behavior;
 
@@ -42,6 +44,10 @@ public class ApArticleBehavior {
     public static final Short STAR_ARTICLE_BEHAVIOR = 2;
     @Transient
     public static final Short DISLIKE_ARTICLE_BEHAVIOR = 3;
+    @Transient
+    public static final Short FORWARD_ARTICLE_BEHAVIOR = 4;
+    @Transient
+    public static final Short COMMENT_ARTICLE_BEHAVIOR = 5;
 
     /**
      * 文章id

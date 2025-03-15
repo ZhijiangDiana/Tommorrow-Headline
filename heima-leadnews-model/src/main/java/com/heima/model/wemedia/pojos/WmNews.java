@@ -114,9 +114,15 @@ public class WmNews implements Serializable {
     @TableField("images")
     private String images;
 
+    /**
+     * 是否上架
+     */
     @TableField("enable")
     private Short enable;
-    
+
+    public static final Short WM_NEWS_DISABLE = 0;
+    public static final Short WM_NEWS_ENABLE = 1;
+
      //状态枚举类
     @Alias("WmNewsStatus")
     public enum Status{
