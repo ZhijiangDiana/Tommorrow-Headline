@@ -1,5 +1,6 @@
 package com.heima.wemedia.config;
 
+import com.heima.wemedia.interceptor.RequestTimeInterceptor;
 import com.heima.wemedia.interceptor.WmTokenInterceptor;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,8 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new WmTokenInterceptor())
+                .addPathPatterns("/**");
+        registry.addInterceptor(new RequestTimeInterceptor())
                 .addPathPatterns("/**");
     }
 }
