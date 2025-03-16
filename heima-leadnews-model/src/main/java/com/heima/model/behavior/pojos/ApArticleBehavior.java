@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
 
 /**
- * APP评论信息
+ * APP文章记录
  */
 @Data
 @Document("ap_article_behavior")
