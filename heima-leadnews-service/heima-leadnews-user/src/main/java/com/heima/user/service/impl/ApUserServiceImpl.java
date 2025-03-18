@@ -3,6 +3,7 @@ package com.heima.user.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heima.common.aliyun.SMSService;
 import com.heima.common.constants.ApUserConstants;
 import com.heima.common.jwt.AppJwtUtil;
 import com.heima.common.redis.CacheService;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -37,9 +39,12 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
     private CacheService cacheService;
 
     @Autowired
+    private SMSService smsService;
+
+    @Autowired
     private AppJwtUtil appJwtUtil;
 
-    private static final long CODE_VALID_MINUTES = 1; //30;
+    private static final long CODE_VALID_MINUTES = 30; // 1; //30;
 
     private static final Random random = new Random();
 
@@ -123,13 +128,28 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
         if (StringUtils.isEmpty(phone))
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
 
+        // 过滤频繁请求
+        String key = ApUserConstants.VERIFY_CODES + phone;
+        Long expire = cacheService.getExpire(key, TimeUnit.MINUTES);
+        if (expire - CODE_VALID_MINUTES < 1)
+            return ResponseResult.errorResult(AppHttpCodeEnum.REQUEST_TOO_FREQUENT);
+
         // 生成五位随机数
         String code = Integer.toString(100000 + random.nextInt(900000));
 
-        // TODO 发送短信
-        // sendMessage(phone, code)
+        // 发送短信
+        try {
+            smsService.sendVerifyCode(phone, code);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR, e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
+        }
 
-        cacheService.setEx(ApUserConstants.VERIFY_CODES + phone, code, CODE_VALID_MINUTES, TimeUnit.MINUTES);
+        // 将验证码存入redis
+        cacheService.setEx(key, code, CODE_VALID_MINUTES, TimeUnit.MINUTES);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
@@ -173,9 +193,7 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
     }
 
     private Boolean isVerified(String phone, Integer code) {
-//        String dbCode = cacheService.get(ApUserConstants.VERIFY_CODES + phone);
-//        return dbCode != null && dbCode.equals(code.toString());
-        // TODO 仅测试用
-        return true;
+        String dbCode = cacheService.get(ApUserConstants.VERIFY_CODES + phone);
+        return dbCode != null && dbCode.equals(code.toString());
     }
 }

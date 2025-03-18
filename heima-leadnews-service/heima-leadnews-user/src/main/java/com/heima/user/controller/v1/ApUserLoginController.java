@@ -32,7 +32,7 @@ public class ApUserLoginController {
     }
 
     @PostMapping("/send_verify_code")
-    public ResponseResult sendVerifyCode(String phone) {
-        return apUserService.sendVerifyCode(phone);
+    public ResponseResult sendVerifyCode(@RequestBody CodeLoginDto dto) {
+        return apUserService.sendVerifyCode(dto.getPhone());
     }
 }
