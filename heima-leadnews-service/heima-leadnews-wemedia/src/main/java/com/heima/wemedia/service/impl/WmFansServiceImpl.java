@@ -39,12 +39,6 @@ public class WmFansServiceImpl implements WmFansService {
     private CacheService cacheService;
 
     @Autowired
-    private PipelineService pipelineService;
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
-    @Autowired
     private IUserClient userClient;
 
     @Autowired
@@ -132,6 +126,22 @@ public class WmFansServiceImpl implements WmFansService {
 
     @Override
     public ResponseResult followOrUnFollowFans(UserRelationDto userRelationDto) {
-        return null;
+        // 检查userId
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+        WmUser thisUser = wmUserMapper.selectById(userId);
+
+        // 修改请求
+        WmUser destUser = wmUserMapper.selectOne(new LambdaQueryWrapper<WmUser>()
+                .eq(WmUser::getApUserId, userRelationDto.getAuthorId())
+                .select(WmUser::getId));
+        if (destUser == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.USER_NOT_WEMEDIA_USER);
+
+        userRelationDto.setAuthorId(destUser.getId());
+
+        // 调用方法
+        return userClient.followOrUnfollow(thisUser.getApUserId(), userRelationDto);
     }
 }

@@ -36,7 +36,8 @@ public enum AppHttpCodeEnum {
     MATERIAL_REFERENCE_FAIL(3501, "素材引用失效"),
     MATERIAL_HAS_REFERENCE(3502, "素材已被引用，不能删除"),
     NEWS_HAS_PUBLISHED(501, "文章未发布，不能删除"),
-    NEWS_ISNT_PUBLISHED(501, "文章不是发布状态，不能上下架");
+    NEWS_ISNT_PUBLISHED(501, "文章不是发布状态，不能上下架"),
+    USER_NOT_WEMEDIA_USER(3511, "该用户不是自媒体用户");
 
     int code;
     String errorMessage;
