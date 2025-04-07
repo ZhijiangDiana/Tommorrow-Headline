@@ -16,6 +16,10 @@
         <maven.compiler.target>8</maven.compiler.target>
     </properties>
 
+    <build>
+        <finalName>heima-leadnews-article</finalName>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
