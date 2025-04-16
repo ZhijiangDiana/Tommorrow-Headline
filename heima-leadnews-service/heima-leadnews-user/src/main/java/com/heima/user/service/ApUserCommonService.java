@@ -2,6 +2,7 @@ package com.heima.user.service;
 
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.user.vos.ApUserInfoVO;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ApUserCommonService {
 
@@ -22,4 +23,11 @@ public interface ApUserCommonService {
      * @return
      */
     ResponseResult getFansList();
+
+    /**
+     * 上传图片
+     * @param multipartFile
+     * @return
+     */
+    ResponseResult uploadPicture(MultipartFile multipartFile);
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.heima.apis.wemedia.IWemediaClient;
 import com.heima.common.constants.BehaviorConstants;
 import com.heima.common.redis.CacheService;
+import com.heima.file.service.FileStorageService;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
 import com.heima.model.user.pojos.ApUser;
@@ -15,12 +16,16 @@ import com.heima.user.mapper.ApUserMapper;
 import com.heima.user.mapper.ApUserRealnameMapper;
 import com.heima.user.service.ApUserCommonService;
 import com.heima.utils.thread.ThreadLocalUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ApUserCommonServiceImpl implements ApUserCommonService {
 
@@ -32,6 +37,9 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
 
     @Autowired
     private IWemediaClient wemediaClient;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     /**
      * 获取用户主页信息
@@ -173,5 +181,27 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
         }
 
         return ResponseResult.okResult(res);
+    }
+
+    @Override
+    public ResponseResult uploadPicture(MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.getSize() == 0)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+
+        String fileName = UUID.randomUUID().toString().replace("-", "");
+        String originalFilename = multipartFile.getOriginalFilename();
+        String postfix = originalFilename.substring(originalFilename.lastIndexOf("."));
+
+        String fileId;
+        try {
+            fileId = fileStorageService.uploadImgFile("", fileName + postfix, multipartFile.getInputStream());
+            log.info("上传图片到MinIO中，fileId: {}", fileId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("{} - 上传文件失败", getClass().getName());
+            return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
+        }
+
+        return ResponseResult.okResult(fileId);
     }
 }

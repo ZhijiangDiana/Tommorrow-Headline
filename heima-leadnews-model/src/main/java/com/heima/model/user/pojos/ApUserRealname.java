@@ -41,7 +41,13 @@ public class ApUserRealname implements Serializable {
     private String name;
 
     /**
-     * 资源名称
+     * 真实姓名
+     */
+    @TableField("real_name")
+    private String realName;
+
+    /**
+     * 身份证号
      */
     @TableField("idno")
     private String idno;

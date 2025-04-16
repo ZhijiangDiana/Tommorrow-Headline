@@ -3,9 +3,10 @@ package com.heima.user.controller.v1;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.user.service.ApUserCommonService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -35,5 +36,15 @@ public class ApUserCommonController {
     @GetMapping("/following")
     public ResponseResult getFollowing() {
         return apUserCommonService.getFollowingList();
+    }
+
+    /**
+     * 上传文件
+     * @param multipartFile
+     * @return
+     */
+    @PostMapping("/uploadFile")
+    public ResponseResult uploadFile(MultipartFile multipartFile) {
+        return apUserCommonService.uploadPicture(multipartFile);
     }
 }
