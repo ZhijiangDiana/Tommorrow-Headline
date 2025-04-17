@@ -27,4 +27,18 @@ public interface ArticleBehaviorService {
      * @return
      */
     ResponseResult read(ReadBehaviorDto dto);
+
+    /**
+     * 开始阅读文章
+     * @param articleId
+     * @return
+     */
+    ResponseResult startRead(Long articleId);
+
+    /**
+     * 停止阅读文章
+     * @param articleId
+     * @return
+     */
+    ResponseResult stopRead(Long articleId);
 }

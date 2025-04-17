@@ -32,4 +32,14 @@ public class ArticleBehaviorController {
     public ResponseResult dislikeBehavior(@RequestBody DislikeBehaviorDto dto) {
         return articleBehaviorService.dislike(dto);
     }
+
+    @PostMapping("/start_read")
+    public ResponseResult startRead(@RequestBody ReadBehaviorDto dto) {
+        return articleBehaviorService.startRead(dto.getArticleId());
+    }
+
+    @PostMapping("/end_read")
+    public ResponseResult endRead(@RequestBody ReadBehaviorDto dto) {
+        return articleBehaviorService.stopRead(dto.getArticleId());
+    }
 }

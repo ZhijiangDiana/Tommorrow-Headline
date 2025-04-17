@@ -57,5 +57,11 @@ public class BehaviorConstants {
     public static final String ARTICLE_COLLECT_CNT = "article_collected_cnt:";
     public static final String MOMENT_COLLECT_CNT = "moment_collected_cnt:";
 
-
+    /**
+     * 阅读时长相关redis主键
+     */
+    // 用户开始阅读的文章
+    public static final String USER_ARTICLE_START_READ_TIME = "user_article_start_read_time:";
+    // 用户已阅读时长
+    public static final String USER_READ_TIME = "user_read_time:";
 }

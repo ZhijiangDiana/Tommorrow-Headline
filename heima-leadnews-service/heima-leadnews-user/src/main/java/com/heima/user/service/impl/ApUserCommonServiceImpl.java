@@ -85,11 +85,13 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
                 .intValue());
 
         // 填写阅读时间
-        Integer readingMinutes = 0;
+        String readTimeKey = BehaviorConstants.USER_READ_TIME + userId;
+        Long readingMillis = cacheService.zRangeAll(readTimeKey).stream().mapToLong(Long::parseLong).sum();
+        Long readingMinutes = readingMillis / 1000 / 60;
         String readingTime = "";
-        if (readingMinutes / 60 != 0)
-            readingTime = readingMinutes / 60 + "小时";
-        readingTime += readingMinutes % 60 + "分钟";
+        if (readingMinutes / 60L != 0L)
+            readingTime = readingMinutes / 60L + "小时";
+        readingTime += readingMinutes % 60L + "分钟";
         apUserInfoVO.setReadingTime(readingTime);
 
         return ResponseResult.okResult(apUserInfoVO);

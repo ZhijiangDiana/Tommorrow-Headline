@@ -193,4 +193,43 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
+
+    @Override
+    public ResponseResult startRead(Long articleId) {
+        if (articleId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+
+        // 将阅读记录插入redis
+        String key = BehaviorConstants.USER_ARTICLE_START_READ_TIME + userId;
+        cacheService.zAdd(key, articleId.toString(), System.currentTimeMillis());
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    @Override
+    public ResponseResult stopRead(Long articleId) {
+        if (articleId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        Integer userId = ThreadLocalUtil.getUserId();
+        if (userId == null)
+            return ResponseResult.errorResult(AppHttpCodeEnum.NEED_LOGIN);
+
+        // 查询并计算阅读时长
+        String key = BehaviorConstants.USER_ARTICLE_START_READ_TIME + userId;
+        Long startTime = cacheService.zScore(key, articleId.toString()).longValue();
+        long endTime = System.currentTimeMillis();
+        Long readTime = endTime - startTime;
+
+        // 删除开始阅读记录
+        cacheService.zRemove(key, articleId.toString());
+
+        // 将阅读时长写入redis
+        String readTimeKey = BehaviorConstants.USER_READ_TIME + userId;
+        cacheService.zAdd(readTimeKey, readTime.toString(), startTime);
+
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
 }
