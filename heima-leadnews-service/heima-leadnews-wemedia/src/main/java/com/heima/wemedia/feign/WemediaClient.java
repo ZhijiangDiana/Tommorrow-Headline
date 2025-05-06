@@ -21,8 +21,8 @@ public class WemediaClient implements IWemediaClient {
 
     @Override
     @PostMapping("/api/v1/wemedia/wm_user")
-    public ResponseResult getUserById(Integer id) {
-        return ResponseResult.okResult(wmUserService.getOne(new LambdaQueryWrapper<WmUser>().eq(WmUser::getApUserId, id)));
+    public WmUser getUserById(Integer id) {
+        return wmUserService.getById(id);
     }
 
     @Override

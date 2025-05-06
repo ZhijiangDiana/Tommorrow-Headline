@@ -30,4 +30,11 @@ public interface ApUserCommonService {
      * @return
      */
     ResponseResult uploadPicture(MultipartFile multipartFile);
+
+    /**
+     * 使用自媒体用户查询用户
+     * @param wmuserId
+     * @return
+     */
+    ResponseResult getUserByWmId(Integer wmuserId);
 }

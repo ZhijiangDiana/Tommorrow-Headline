@@ -602,6 +602,8 @@ public class CacheService extends CachingConfigurerSupport {
      * @return
      */
     public Long lRightPushAll(String key, Collection<String> value) {
+        if (value == null || value.isEmpty())
+            return 0L;
         return stringRedisTemplate.opsForList().rightPushAll(key, value);
     }
 

@@ -1,5 +1,6 @@
 package com.heima.user.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.heima.apis.wemedia.IWemediaClient;
 import com.heima.common.constants.BehaviorConstants;
@@ -55,19 +56,6 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
         if (apUser == null)
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
 
-        // 查找wmUserId
-        Integer wmUserId = null;
-        if (!apUser.getFlag().equals(ApUser.NORMAL_USER)) {
-            ResponseResult resp = wemediaClient.getUserById(userId);
-            if (resp.getCode() != AppHttpCodeEnum.SUCCESS.getCode())
-                return ResponseResult.errorResult(AppHttpCodeEnum.SERVER_ERROR);
-            Object data = resp.getData();
-            if (data != null) {
-                LinkedHashMap map = (LinkedHashMap) data;
-                wmUserId = (Integer) map.get("id");
-            }
-        }
-
         ApUserInfoVO apUserInfoVO = new ApUserInfoVO();
 
         // 填写用户名和头像
@@ -81,7 +69,7 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
         apUserInfoVO.setPosts(0);
         apUserInfoVO.setFollowing(cacheService.zCount(BehaviorConstants.FOLLOW_LIST + userId, 0, Double.MAX_VALUE)
                 .intValue());
-        apUserInfoVO.setFollowers(cacheService.zCount(BehaviorConstants.FAN_LIST + wmUserId, 0, Double.MAX_VALUE)
+        apUserInfoVO.setFollowers(cacheService.zCount(BehaviorConstants.FAN_LIST + apUser.getWmUserId(), 0, Double.MAX_VALUE)
                 .intValue());
 
         // 填写阅读时间
@@ -205,5 +193,19 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
         }
 
         return ResponseResult.okResult(fileId);
+    }
+
+    @Override
+    public ResponseResult getUserByWmId(Integer wmuserId) {
+
+        // 远程调用
+        WmUser wmUser = wemediaClient.getUserById(wmuserId);
+
+        // 查询用户
+        ApUser apUser = apUserMapper.selectById(wmUser.getApUserId());
+        apUser.setSalt(null);
+        apUser.setPassword(null);
+
+        return ResponseResult.okResult(apUser);
     }
 }

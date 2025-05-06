@@ -47,4 +47,14 @@ public class ApUserCommonController {
     public ResponseResult uploadFile(MultipartFile multipartFile) {
         return apUserCommonService.uploadPicture(multipartFile);
     }
+
+    /**
+     * 使用自媒体用户id查询用户
+     * @param wmuserId
+     * @return
+     */
+    @PostMapping("/getUserByWmId/{wmuserId}")
+    public ResponseResult getUserByWmId(@PathVariable Integer wmuserId) {
+        return apUserCommonService.getUserByWmId(wmuserId);
+    }
 }
