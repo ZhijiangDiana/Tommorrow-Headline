@@ -1,5 +1,6 @@
 package com.heima.behavior.config;
 
+import com.heima.behavior.interceptor.RequestTimeInterceptor;
 import com.heima.behavior.interceptor.TokenInterceptor;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,8 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new TokenInterceptor())
+                .addPathPatterns("/**");
+        registry.addInterceptor(new RequestTimeInterceptor())
                 .addPathPatterns("/**");
     }
 }

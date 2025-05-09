@@ -1,5 +1,5 @@
 server:
-  port: 51701
+  port: ${random.int(41800,41809)}
 spring:
   application:
     name: leadnews-schedule
