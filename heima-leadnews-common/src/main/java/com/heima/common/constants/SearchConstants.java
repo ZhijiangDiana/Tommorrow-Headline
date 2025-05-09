@@ -11,4 +11,7 @@ public class SearchConstants {
 
     public static final String HIGHLIGHT_PRE_TAG = "<font style='color: red; font-size: inherit;'>";
     public static final String HIGHLIGHT_POST_TAG = "</font>";
+
+    // 用户搜索记录key
+    public static final String USER_SEARCH_HISTORY = "user_search_history:";
 }
