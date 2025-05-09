@@ -27,6 +27,7 @@ import com.heima.wemedia.mapper.WmUserMapper;
 import com.heima.wemedia.service.WmNewsAddArticleService;
 import com.heima.wemedia.service.WmNewsService;
 import com.heima.wemedia.service.WmNewsTaskService;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     @Override
     @Transactional
+    @GlobalTransactional
     public ResponseResult submit(WmNewsDto dto) {
         // 0.条件判断
         if (dto == null || dto.getContent() == null)
@@ -322,14 +324,16 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     private void saveRelativeInfo(List<String> materials, Integer newsId, Short type) {
         materials = materials.stream().distinct().collect(Collectors.toList());    // 去重以适配引用相同图片的情况
-        List<WmMaterial> dbMaterials = wmMaterialMapper.selectList(new LambdaQueryWrapper<WmMaterial>()
-                .select(WmMaterial::getId)
-                .in(WmMaterial::getUrl, materials));
-        if (dbMaterials == null || dbMaterials.isEmpty() || dbMaterials.size() != materials.size())
-            throw new CustomException(AppHttpCodeEnum.MATERIAL_REFERENCE_FAIL);
-        // 收集id
-        List<Integer> ids = dbMaterials.stream().map(WmMaterial::getId).collect(Collectors.toList());
-        // 批量保存
-        wmNewsMaterialMapper.saveRelations(ids, newsId, type);
+        if (!materials.isEmpty()) {
+            List<WmMaterial> dbMaterials = wmMaterialMapper.selectList(new LambdaQueryWrapper<WmMaterial>()
+                    .select(WmMaterial::getId)
+                    .in(WmMaterial::getUrl, materials));
+            if (dbMaterials == null || dbMaterials.isEmpty() || dbMaterials.size() != materials.size())
+                throw new CustomException(AppHttpCodeEnum.MATERIAL_REFERENCE_FAIL);
+            // 收集id
+            List<Integer> ids = dbMaterials.stream().map(WmMaterial::getId).collect(Collectors.toList());
+            // 批量保存
+            wmNewsMaterialMapper.saveRelations(ids, newsId, type);
+        }
     }
 }
