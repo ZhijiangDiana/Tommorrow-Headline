@@ -18,6 +18,8 @@ import com.heima.user.mapper.ApUserRealnameMapper;
 import com.heima.user.service.ApUserCommonService;
 import com.heima.utils.thread.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,8 +76,12 @@ public class ApUserCommonServiceImpl implements ApUserCommonService {
 
         // 填写阅读时间
         String readTimeKey = BehaviorConstants.USER_READ_TIME + userId;
-        Long readingMillis = cacheService.zRangeAll(readTimeKey).stream().mapToLong(Long::parseLong).sum();
-        Long readingMinutes = readingMillis / 1000 / 60;
+        LocalDateTime begin = LocalDateTime.now().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfDay(0);
+        long beginScore = begin.toDate().getTime();
+        long endScore = begin.plusDays(1).toDate().getTime();
+        long readingMillis = cacheService.zRangeByScore(readTimeKey, beginScore, endScore)
+                .stream().mapToLong(Long::parseLong).sum();
+        long readingMinutes = readingMillis / 1000 / 60;
         String readingTime = "";
         if (readingMinutes / 60L != 0L)
             readingTime = readingMinutes / 60L + "小时";
