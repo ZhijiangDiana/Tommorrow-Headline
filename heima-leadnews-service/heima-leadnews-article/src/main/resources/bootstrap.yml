@@ -17,4 +17,4 @@ spring:
 mybatis-plus:
   global-config:
     datacenter-id: 1
-    workerId: 1
+    workerId: ${random.int(0,31)}
