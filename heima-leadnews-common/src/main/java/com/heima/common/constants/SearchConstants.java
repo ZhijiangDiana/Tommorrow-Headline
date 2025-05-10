@@ -14,4 +14,7 @@ public class SearchConstants {
 
     // 用户搜索记录key
     public static final String USER_SEARCH_HISTORY = "user_search_history:";
+    // 热搜排名key
+    public static final String OFFLINE_HOT_SEARCH_RANK = "offline_hot_search_rank";
+    public static final String ONLINE_HOT_SEARCH_RANK = "online_hot_search_rank";
 }
