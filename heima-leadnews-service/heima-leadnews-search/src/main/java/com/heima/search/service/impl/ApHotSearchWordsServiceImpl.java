@@ -3,6 +3,7 @@ package com.heima.search.service.impl;
 import com.heima.common.constants.SearchConstants;
 import com.heima.common.redis.CacheService;
 import com.heima.model.common.dtos.ResponseResult;
+import com.heima.model.search.pojos.ApUserSearch;
 import com.heima.model.search.vos.SearchRankEntityVo;
 import com.heima.search.service.ApHotSearchWordsService;
 import lombok.Data;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -38,6 +40,7 @@ public class ApHotSearchWordsServiceImpl implements ApHotSearchWordsService {
 
     private static final int ONLINE_PAGE_SIZE = 0;
 
+    private static final int MIN_WORD_COUNT = 10;
     private static final int STORAGE_MAX_LIMIT = 20;
 
     private Random random = new Random();
@@ -76,22 +79,34 @@ public class ApHotSearchWordsServiceImpl implements ApHotSearchWordsService {
     public void calculateHotSearchWords() {
         LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
 
-        // 使用Aggregation管道聚合
-        MatchOperation match = Aggregation.match(Criteria.where("createdTime").gte(yesterday));
-        GroupOperation group = Aggregation.group("keyword").count().as("count");
-        SortOperation sort = Aggregation.sort(Sort.by(Sort.Direction.DESC, "count"));
-        LimitOperation limit = Aggregation.limit(STORAGE_MAX_LIMIT); // 限制前20条
-        Aggregation aggregation = Aggregation.newAggregation(match, group, sort, limit);
-
-        // 获取热词结果
-        List<KeywordCount> res = mongoTemplate.aggregate(aggregation, "ap_user_search", KeywordCount.class)
-                .getMappedResults();
+        List<KeywordCount> res = getKeywordCounts(yesterday, true);
+        if (res.size() < MIN_WORD_COUNT)
+            res = getKeywordCounts(yesterday, false);
         List<String> store = res.stream().map(KeywordCount::getId).collect(Collectors.toList());
 
         // 删除旧记录
         cacheService.delete(SearchConstants.OFFLINE_HOT_SEARCH_RANK);
         // 存储新记录
         cacheService.lRightPushAll(SearchConstants.OFFLINE_HOT_SEARCH_RANK, store);
+    }
+
+    private List<KeywordCount> getKeywordCounts(LocalDateTime yesterday, boolean enableLimit) {
+        // 使用Aggregation管道聚合
+        GroupOperation group = Aggregation.group("keyword").count().as("count");
+        SortOperation sort = Aggregation.sort(Sort.by(Sort.Direction.DESC, "count"));
+        Aggregation aggregation;
+        if (enableLimit) {
+            MatchOperation match = Aggregation.match(Criteria.where("createdTime").gte(yesterday));
+            LimitOperation limit = Aggregation.limit(STORAGE_MAX_LIMIT);  // 限制前20条
+            aggregation = Aggregation.newAggregation(match, group, sort, limit);
+        }  else {
+            aggregation = Aggregation.newAggregation(group, sort);
+        }
+
+        // 获取热词结果
+        List<KeywordCount> res = mongoTemplate.aggregate(aggregation, "ap_user_search", KeywordCount.class)
+                .getMappedResults();
+        return res;
     }
 
     @Data
