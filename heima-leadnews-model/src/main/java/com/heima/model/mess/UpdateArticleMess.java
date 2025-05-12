@@ -1,4 +1,4 @@
-package com.heima.apis.mess;
+package com.heima.model.mess;
 
 import lombok.Data;
 

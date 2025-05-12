@@ -2,7 +2,7 @@ package com.heima.comment.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.heima.apis.article.IArticleClient;
-import com.heima.apis.mess.UpdateArticleMess;
+import com.heima.model.mess.UpdateArticleMess;
 import com.heima.apis.user.IUserClient;
 import com.heima.comment.service.CommentService;
 import com.heima.common.constants.HotArticleConstants;
@@ -96,7 +96,7 @@ public class CommentServiceImpl implements CommentService {
         mess.setArticleId(dto.getArticleId());
         mess.setAdd(1);
         mess.setType(UpdateArticleMess.UpdateArticleType.COMMENT);
-        kafkaTemplate.send(HotArticleConstants.HOT_ARTICLE_SCORE_TOPIC,JSON.toJSONString(mess));
+        kafkaTemplate.send(HotArticleConstants.HOT_ARTICLE_SCORE_TOPIC, JSON.toJSONString(mess));
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }

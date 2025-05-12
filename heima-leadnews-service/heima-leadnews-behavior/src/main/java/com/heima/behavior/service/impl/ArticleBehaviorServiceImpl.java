@@ -1,7 +1,9 @@
 package com.heima.behavior.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.heima.behavior.service.ArticleBehaviorService;
 import com.heima.common.constants.BehaviorConstants;
+import com.heima.common.constants.HotArticleConstants;
 import com.heima.common.redis.CacheService;
 import com.heima.model.behavior.dtos.DislikeBehaviorDto;
 import com.heima.model.behavior.dtos.LikesBehaviorDto;
@@ -9,11 +11,13 @@ import com.heima.model.behavior.dtos.ReadBehaviorDto;
 import com.heima.model.behavior.pojos.ApArticleBehavior;
 import com.heima.model.common.dtos.ResponseResult;
 import com.heima.model.common.enums.AppHttpCodeEnum;
+import com.heima.model.mess.UpdateArticleMess;
 import com.heima.utils.thread.ThreadLocalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -26,6 +30,9 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public ResponseResult like(LikesBehaviorDto dto) {
@@ -63,6 +70,11 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
         apArticleBehavior.setArticleId(dto.getArticleId());
         apArticleBehavior.setType(dto.getType());
 
+        // 组装数据聚合实体
+        UpdateArticleMess mess = new UpdateArticleMess();
+        mess.setArticleId(dto.getArticleId());
+        mess.setType(UpdateArticleMess.UpdateArticleType.LIKES);
+
         // 点赞或取消点赞
         if (LikesBehaviorDto.LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据存入数据库
@@ -78,6 +90,9 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
                 // 将记录存入数据库
                 mongoTemplate.save(apArticleBehavior);
+
+                // 组装聚合实体
+                mess.setAdd(1);
             }
         } else if (LikesBehaviorDto.DISCARD_LIKE_OPERATION.equals(dto.getOperation())) {
             // 文章点赞数据删除
@@ -94,8 +109,13 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
                         .and("type").is(dto.getType()));
                 mongoTemplate.remove(query, ApArticleBehavior.class);
             }
+
+            // 组装聚合实体
+            mess.setAdd(-1);
         }
 
+        // 发送消息
+        kafkaTemplate.send(HotArticleConstants.HOT_ARTICLE_SCORE_TOPIC, JSON.toJSONString(mess));
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
@@ -190,6 +210,13 @@ public class ArticleBehaviorServiceImpl implements ArticleBehaviorService {
 
         // 将记录存入数据库
         mongoTemplate.save(apArticleBehavior);
+
+        //发送消息，数据聚合
+        UpdateArticleMess mess = new UpdateArticleMess();
+        mess.setArticleId(dto.getArticleId());
+        mess.setType(UpdateArticleMess.UpdateArticleType.VIEWS);
+        mess.setAdd(1);
+        kafkaTemplate.send(HotArticleConstants.HOT_ARTICLE_SCORE_TOPIC, JSON.toJSONString(mess));
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
