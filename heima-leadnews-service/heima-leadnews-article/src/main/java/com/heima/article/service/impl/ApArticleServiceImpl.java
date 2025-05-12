@@ -39,10 +39,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -215,9 +212,9 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
          * 1. 若为firstpage，则将redis的热门文章取回后打乱，取前x条返回
          * 2. 若不是firstpage，则从数据库选出n条数据，再从redis中取m条数据，打乱后返回（热门数据条数的期望是nm/(n+m)）
          */
-        List<String> hotArticleStr = cacheService.lRange(
+        List<String> hotArticleStr = new ArrayList<>(cacheService.zRange(
                 ArticleConstants.HOT_ARTICLE_FITST_PAGE + dto.getTag(),
-                0, ArticleConstants.HOT_CACHE_ARTICLE_CNT);
+                0, ArticleConstants.HOT_CACHE_ARTICLE_CNT));
         Collections.shuffle(hotArticleStr);
         if (firstPage) {
             List<HotArticleVO> res = hotArticleStr.stream()

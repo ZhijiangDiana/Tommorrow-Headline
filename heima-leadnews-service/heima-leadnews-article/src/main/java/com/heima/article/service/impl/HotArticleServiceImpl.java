@@ -115,12 +115,17 @@ public class HotArticleServiceImpl implements HotArticleService {
     }
 
     private void sortAndCache(String key, List<HotArticleVO> channelHotArticles) {
-        List<String> sortedArticles = channelHotArticles.stream()
+        // 删除历史数据
+        cacheService.delete(key);
+
+        // 排序
+        List<HotArticleVO> sortedArticles = channelHotArticles.stream()
                 .sorted(Comparator.comparing(HotArticleVO::getScore).reversed())
                 .limit(ArticleConstants.HOT_CACHE_ARTICLE_CNT)
-                .map(JSON::toJSONString)
                 .collect(Collectors.toList());
 
-        cacheService.lRightPushAll(key, sortedArticles);
+        // 更新文章列表
+        for (HotArticleVO article : sortedArticles)
+            cacheService.zAdd(key, JSON.toJSONString(article), article.getScore());
     }
 }
